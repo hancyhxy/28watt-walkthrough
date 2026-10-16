@@ -1,6 +1,6 @@
 <!doctype html>
-<html lang="zh"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>28Watt · From big picture to redesign / 从全局到优化</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>28Watt · From quote to approval</title>
 <style>
 :root{--teal:#25576e;--teal2:#1b4556;--mint:#5cc48d;--mint2:#c7e7c4;--mintbg:#eef9f3;--cream:#fdf7e3;--ink:#1d2b33;--mute:#62717a;--line:#dbe6e2;--warn:#c0661c;--warnbg:#fff3e6;--red:#d64545;--redbg:#fdeceb;--blue:#3b6fd1;--money:#1f8a57}
 *{box-sizing:border-box}
@@ -525,7 +525,7 @@ body.st0 .legend{display:none}
 </div></div><div class="abar"><span>AA</span><i>🔒 28watt.com.au</i><span>↻</span></div></div></div>
 <div class="tps"><div class="lab pro"><span lang="zh">信任点</span><span lang="en">Trust points</span></div>
 <ol>
-<li><b><span lang="zh">排序依据说清楚</span><span lang="en">Say how it's ranked</span></b><span lang="zh">按总成本排序，而不是按谁给的佣金高。</span><span lang="en">Ranked by total cost, not by commission.</span></li>
+<li><b><span lang="zh">排序依据说清楚</span><span lang="en">Say how it's ranked</span></b><span lang="zh">在界面上写明排序依据：总成本最低的排第一。</span><span lang="en">State the ranking on screen: lowest total cost first.</span></li>
 <li><b><span lang="zh">月供旁边就是总成本</span><span lang="en">Total cost next to repayment</span></b><span lang="zh">月供、利率、comparison rate、总还款放在一起。</span><span lang="en">Repayment, rate, comparison rate and total repaid together.</span></li>
 <li><b><span lang="zh">品牌主张落到这张卡上</span><span lang="en">The brand promise, on the card</span></b><span lang="zh">把“避开 interest-free 陷阱”变成一句具体对比。</span><span lang="en">“Avoid the interest-free trap” becomes a concrete comparison.</span></li>
 <li><b><span lang="zh">合规写全</span><span lang="en">Compliance, done properly</span></b><span lang="zh">澳洲个人贷款的 comparison rate 按 $30,000、5 年计算，并附警示语。正式上线前需要合规审核。</span><span lang="en">Australian personal-loan comparison rates use $30,000 over 5 years, with the warning. Needs compliance review.</span></li></ol>
@@ -781,7 +781,7 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>go(+b.dataset
 document.querySelectorAll('[data-go]').forEach(li=>li.onclick=()=>go(+li.dataset.go));
 document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'){if(tab===1&&stage===0)setStage(1);else go(tab+1)}if(e.key==='ArrowLeft'){if(tab===1&&stage===1)setStage(0);else go(tab-1)}});
 document.querySelectorAll('#stepper button').forEach(b=>b.onclick=()=>setStage(+b.dataset.s));
-let L=(()=>{try{return localStorage.getItem('flowLang')}catch(e){}})()||'zh';
+let L=(()=>{try{return localStorage.getItem('flowLang')}catch(e){}})()||'en';
 function applyLang(){document.body.classList.toggle('en',L==='en');document.documentElement.lang=L;document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.l===L))}
 document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{L=b.dataset.l;try{localStorage.setItem('flowLang',L)}catch(e){}applyLang()});
 renderMap();setView('all');setStage(0);go(parseInt(location.hash.slice(1))||0);applyLang();
