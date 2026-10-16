@@ -310,6 +310,7 @@ body.st0 .legend{display:none}
 .dc.al{border-left:3px solid #ef6c1a}.dc.okc{border-left:3px solid var(--mint)}
 .nd{display:inline-block;margin-top:3px;font-size:9px;font-weight:700;color:var(--teal);background:var(--mintbg);border-radius:99px;padding:0 6px}
 .say{display:none!important}
+.srcnote{max-width:1560px;margin:0 auto;padding:8px 22px 0;font-size:12.5px;color:var(--mute)}.srcnote b{color:var(--teal)}
 </style></head><body>
 <header>
 <h1><span lang="zh">28Watt：从报价到批准</span><span lang="en">28Watt: from quote to approval</span></h1>
@@ -324,6 +325,7 @@ body.st0 .legend{display:none}
 <button data-t="4"><b>4</b><span lang="zh">落地方案</span><span lang="en">Current → proposed</span></button>
 </nav>
 
+<div class="srcnote"><span lang="zh">ⓘ 以下内容全部根据 28Watt <b>网上公开的信息</b>（官网、partner 页面、网页前端，2026 年 10 月 14 日查看）整理和推测，没有使用任何内部数据。</span><span lang="en">ⓘ Everything here is inferred from information 28Watt has <b>made public online</b> (website, partners page, web front-end, viewed 14 Oct 2026). No internal data was used.</span></div>
 <main>
 <!-- ================= 0. INTRO ================= -->
 <section class="panel" id="p0">
@@ -355,7 +357,7 @@ body.st0 .legend{display:none}
 <section class="panel" id="p1">
 <div class="kick">Part 1</div>
 <p class="lead"><span lang="zh">一笔贷款经过哪些角色、哪些端</span><span lang="en">Who touches a deal, and on which surface</span></p>
-<p class="sub"><span lang="zh">先看最简单的四方，再展开成完整流程。标“推测”的部分有待确认。</span><span lang="en">Start with four parties, then expand into the full flow. Anything marked “inferred” is still to be confirmed.</span></p>
+<p class="sub"><span lang="zh">先看最简单的四方，再展开成完整流程。标“行业常规推测”的部分，是按澳洲贷款行业常规补充的，有待确认。</span><span lang="en">Start with four parties, then expand into the full flow. Items marked “industry norm” are filled in from Australian lending practice and still to be confirmed.</span></p>
 <div id="mapblock">
 <div class="stepper" id="stepper">
 <button data-s="0">① <span lang="zh">核心角色</span><span lang="en">Core parties</span></button><span class="ar">→</span>
@@ -713,7 +715,7 @@ function renderMap(){
  E.forEach((e,i)=>{const [d,mx,my]=pathFor(N[e[0]],N[e[1]]);const st=STY[e[2]];
   s+=`<g data-e="${i}"><path d="${d}" stroke="${st[0]}" stroke-width="${st[1]}" ${st[2]?`stroke-dasharray="${st[2]}"`:''} marker-end="url(#ar-${e[2]})"/>${e[3]?`<text x="${mx}" y="${my}" text-anchor="middle"><tspan lang="zh">${e[3]}</tspan><tspan lang="en">${e[4]}</tspan></text>`:''}</g>`});
  s+='</svg>';h+=s;
- Object.values(N).forEach(n=>{h+=`<div class="node ${n.core?'core':''} ${n.off?'offline':''}" data-n="${n.id}" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${n.who?`<span class="who">${n.who}</span>`:''}<span class="ev ${n.ev==='i'?'i':''}">${n.ev==='i'?T('推测','inferred'):T('已证实','verified')}</span><h6>${n.num?`<span class="num">${n.num}</span>`:''}${T(n.zh,n.en)}</h6><p>${T(n.dzh,n.den)}</p></div>`});
+ Object.values(N).forEach(n=>{h+=`<div class="node ${n.core?'core':''} ${n.off?'offline':''}" data-n="${n.id}" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${n.who?`<span class="who">${n.who}</span>`:''}<span class="ev ${n.ev==='i'?'i':''}">${n.ev==='i'?T('行业常规推测','industry norm'):T('公开可见','public')}</span><h6>${n.num?`<span class="num">${n.num}</span>`:''}${T(n.zh,n.en)}</h6><p>${T(n.dzh,n.den)}</p></div>`});
  [['c1',T('① 交接','① Hand-off'),-36],['c5',T('② 填收入','② Income'),-36],['c7',T('③ 补材料','③ Documents'),-36]].forEach(([id,l,dy])=>{const n=N[id];h+=`<div class="drop" style="left:${n.x+n.w/2-40}px;top:${n.y+dy+ (id==='c1'?0:0)}px">${l}</div>`});
  ROLES.forEach((r,i)=>{const l=LANES[i];h+=`<div class="role ${l.core?'core':''}" data-r="${i}"><h5>${T(l.zh,l.en)}</h5><div class="d">${T(r[0],r[1])}</div><div class="s">${T(l.szh,l.sen)}</div></div>`});
  h+=`<svg class="simple" viewBox="0 0 ${W} ${H}"><defs><marker id="sa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0L10,5L0,10z" fill="context-stroke"/></marker></defs>`+SIMPLE.map(e=>`<path d="${e[0]}" stroke="${e[1]}" stroke-width="2.5" fill="none" ${e[4]?'stroke-dasharray="6 5"':''} marker-end="url(#sa)"/><text x="${e[2][0]}" y="${e[2][1]}" text-anchor="${e[2][2]||'start'}"><tspan lang="zh">${e[3][0]}</tspan><tspan lang="en">${e[3][1]}</tspan></text>`).join('')+'</svg>';
