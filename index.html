@@ -309,11 +309,11 @@ body.st0 .legend{display:none}
 .dc{background:#fff;border:1px solid #e3ebe8;border-radius:8px;padding:5px 6px;margin-bottom:5px;font-size:10px;line-height:1.3}.dc small{display:block;color:var(--mute);font-size:9px}
 .dc.al{border-left:3px solid #ef6c1a}.dc.okc{border-left:3px solid var(--mint)}
 .nd{display:inline-block;margin-top:3px;font-size:9px;font-weight:700;color:var(--teal);background:var(--mintbg);border-radius:99px;padding:0 6px}
+.say{display:none!important}
 </style></head><body>
 <header>
 <h1><span lang="zh">28Watt：从报价到批准</span><span lang="en">28Watt: from quote to approval</span></h1>
-<div style="display:flex;align-items:center"><span class="links"><a href="flow.html"><span lang="zh">泳道流程图</span><span lang="en">Swimlane</span></a><a href="ui.html"><span lang="zh">现有界面</span><span lang="en">Current UI</span></a><a href="installer.html"><span lang="zh">安装商流程</span><span lang="en">Installer journey</span></a></span>
-<div class="lang"><button data-l="zh">中文</button><button data-l="en">EN</button></div></div>
+<div style="display:flex;align-items:center"><div class="lang"><button data-l="zh">中文</button><button data-l="en">EN</button></div></div>
 </header>
 
 <nav class="tabs" id="tabs">
@@ -355,7 +355,7 @@ body.st0 .legend{display:none}
 <section class="panel" id="p1">
 <div class="kick">Part 1</div>
 <p class="lead"><span lang="zh">一笔贷款经过哪些角色、哪些端</span><span lang="en">Who touches a deal, and on which surface</span></p>
-<p class="sub"><span lang="zh">先看最简单的四方，再展开成完整流程。标“推测”的部分要向 Jake 确认。</span><span lang="en">Start with four parties, then expand into the full flow. Anything marked “inferred” is to confirm with you.</span></p>
+<p class="sub"><span lang="zh">先看最简单的四方，再展开成完整流程。标“推测”的部分有待确认。</span><span lang="en">Start with four parties, then expand into the full flow. Anything marked “inferred” is still to be confirmed.</span></p>
 <div id="mapblock">
 <div class="stepper" id="stepper">
 <button data-s="0">① <span lang="zh">核心角色</span><span lang="en">Core parties</span></button><span class="ar">→</span>
@@ -475,7 +475,7 @@ body.st0 .legend{display:none}
 <div class="swl"><span class="step">2</span><b><span lang="zh">基本资料：收入和开户银行</span><span lang="en">The basics: income &amp; bank</span></b><span class="plat">📱 Mobile web</span><span class="prs">02 Trust</span></div>
 <div class="row4">
 <div class="colc"><div class="lab"><span lang="zh">现在 · 提交报价后才看得到</span><span lang="en">Today · only visible after submitting a quote</span></div>
-<div class="dev"><div class="isl"></div><div class="sbar"><b>9:41</b><span>▂▄▆ ◔</span></div><div class="vw none"><div><b><span lang="zh">前端代码里的文案</span><span lang="en">Copy in the front-end</span></b><br>“Please provide the basics…”<br><small>StepProgressSidebar · QuoteFlowModal</small><br><br><span lang="zh">请 Jake 现场演示</span><span lang="en">Ask Jake for a walkthrough</span></div></div><div class="abar"><span>AA</span><i>🔒 28watt.com.au</i><span>↻</span></div></div>
+<div class="dev"><div class="isl"></div><div class="sbar"><b>9:41</b><span>▂▄▆ ◔</span></div><div class="vw none"><div><b><span lang="zh">前端代码里的文案</span><span lang="en">Copy in the front-end</span></b><br>“Please provide the basics…”<br><small>StepProgressSidebar · QuoteFlowModal</small></div></div><div class="abar"><span>AA</span><i>🔒 28watt.com.au</i><span>↻</span></div></div>
 <ul class="iss"><li><span lang="zh">“不影响信用分”写在官网各处，但不一定在填收入的那一刻</span><span lang="en">“No credit impact” is on the site, but maybe not at the income field</span></li><li><span lang="zh">不确定能不能保存、稍后继续</span><span lang="en">Unclear whether progress is saved</span></li></ul></div>
 <div class="arr">→</div>
 <div class="colc"><div class="lab pro"><span lang="zh">概念 · 在提问处解释</span><span lang="en">Concept · explain at the field</span></div>
@@ -585,15 +585,15 @@ body.st0 .legend{display:none}
 <div class="tps"><div class="lab pro"><span lang="zh">信任点和价值</span><span lang="en">Trust &amp; value points</span></div>
 <ol>
 <li><b><span lang="zh">佣金和“需要你”放最上面</span><span lang="en">Commission and “needs you” on top</span></b><span lang="zh">安装商用 portal 的动力，一打开就看到。</span><span lang="en">The reason installers use the portal, visible on arrival.</span></li>
-<li><b><span lang="zh">按阶段看每单在谁手里</span><span lang="en">Each deal by stage</span></b><span lang="zh">和业主看到的是同一个进度，橙色表示需要安装商处理，可以一键提醒客户。可以联系 ByteDance 骑手调度 Order Board 的经验来讲。</span><span lang="en">Same status the homeowner sees; orange means the installer can act, with one-tap nudges. Links to the ByteDance dispatch Order Board story.</span></li></ol>
+<li><b><span lang="zh">按阶段看每单在谁手里</span><span lang="en">Each deal by stage</span></b><span lang="zh">和业主看到的是同一个进度，橙色表示需要安装商处理，可以一键提醒客户。</span><span lang="en">Same status the homeowner sees; orange means the installer can act, with one-tap nudges.</span></li></ol>
 <div class="kpi2"><span lang="zh">看：提醒后的补件时间、安装商来电次数</span><span lang="en">Watch: time to documents after a nudge, installer calls</span></div>
-<p class="note" style="margin-top:10px"><span lang="zh">完整的安装商现状流程（13 步）：</span><span lang="en">Full 13-step installer journey: </span><a href="installer.html" target="_blank">installer.html ↗</a></p></div>
+</div>
 </div></div>
 
 <div class="g2" style="margin-top:18px">
 <div class="pc"><h4><span lang="zh">前两周怎么做</span><span lang="en">First two weeks</span></h4>
 <ol class="mlist"><li><span lang="zh">拉漏斗：从上传报价到批准，每一步的流失</span><span lang="en">Pull the funnel from quote upload to approval</span></li><li><span lang="zh">旁听几通 broker 电话</span><span lang="en">Sit in on a few broker calls</span></li><li><span lang="zh">访谈 5 个安装商、5 个中途流失的业主</span><span lang="en">Talk to 5 installers and 5 homeowners who dropped off</span></li><li><span lang="zh">挑风险最大的一步做原型，两周内测试</span><span lang="en">Prototype the riskiest step and test it within two weeks</span></li></ol></div>
-<div class="pc"><h4><span lang="zh">想向 Jake 确认</span><span lang="en">Questions for you</span></h4>
+<div class="pc"><h4><span lang="zh">待确认的问题</span><span lang="en">Open questions</span></h4>
 <ul class="mlist"><li>Where do most applications drop off today?</li><li>What share start from installers, integrations, or direct?</li><li>Who usually finishes the application: the homeowner alone, or with the installer?</li><li>What does success look like at six months?</li></ul></div>
 </div>
 <div class="say"><b><span lang="zh">收尾一句</span><span lang="en">Closing line</span></b><q>"These are hypotheses from the outside. In week one I'd check them against your data, then test the riskiest step within two weeks."</q></div>
