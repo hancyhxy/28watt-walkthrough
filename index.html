@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>28Watt · From big picture to redesign / 从全局到优化</title>
+<style>
+:root{--teal:#25576e;--teal2:#1b4556;--mint:#5cc48d;--mint2:#c7e7c4;--mintbg:#eef9f3;--cream:#fdf7e3;--ink:#1d2b33;--mute:#62717a;--line:#dbe6e2;--warn:#c0661c;--warnbg:#fff3e6;--red:#d64545;--redbg:#fdeceb;--blue:#3b6fd1;--money:#1f8a57}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 -apple-system,"PingFang SC",system-ui,sans-serif;color:var(--ink);background:#f7faf9}
+body.en [lang=zh],body:not(.en) [lang=en]{display:none!important}
+header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 22px;border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:20;flex-wrap:wrap}
+header h1{font-size:17px;margin:0;color:var(--teal)}
+.links a{color:var(--mute);font-size:12.5px;margin-left:12px}
+.lang{display:flex;background:#fff;border:1px solid var(--line);border-radius:99px;padding:3px;margin-left:14px}
+.lang button{border:0;background:none;padding:4px 11px;border-radius:99px;font:600 12.5px system-ui;color:var(--mute);cursor:pointer}
+.lang button.on{background:var(--teal);color:#fff}
+.tabs{display:flex;gap:6px;padding:12px 22px 0;max-width:1560px;margin:0 auto;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:#fff;border-radius:12px 12px 0 0;padding:9px 16px;font:600 13.5px inherit;color:var(--mute);cursor:pointer;border-bottom:0}
+.tabs button b{display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--line);color:var(--mute);align-items:center;justify-content:center;font-size:11px;margin-right:6px}
+.tabs button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.tabs button.on b{background:#fff;color:var(--teal)}
+main{max-width:1560px;margin:0 auto;padding:0 22px 40px}
+.panel{display:none;background:#fff;border:1px solid var(--line);border-radius:0 14px 14px 14px;padding:18px 20px}
+.panel.on{display:block}
+.lead{font-size:15px;margin:0 0 4px;color:var(--teal);font-weight:700}
+.sub{color:var(--mute);margin:0 0 14px;font-size:13px}
+.say{background:var(--cream);border:1px solid #efe3b8;border-radius:10px;padding:10px 14px;margin:12px 0;font-size:13.5px}
+.say b{color:#8a6a10;font-size:12px;display:block;margin-bottom:2px}
+.say q{font-style:italic;quotes:none}
+.note{font-size:12px;color:var(--mute)}
+/* ---------- map ---------- */
+.mapwrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}
+.mapwrap>div{min-width:0}
+@media(max-width:1200px){.mapwrap{grid-template-columns:1fr}}
+.views{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.views button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 13px;font:600 12.5px inherit;color:var(--teal);cursor:pointer}
+.views button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.viewport{width:100%;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#fbfdfc}
+.canvas{position:relative;width:1480px;height:780px;transform-origin:0 0}
+.lane{position:absolute;left:0;right:0;border-top:1px dashed #d3e0dc}
+.lane .ll{position:absolute;left:10px;top:10px;width:100px;font-weight:700;font-size:12.5px;color:var(--teal);line-height:1.3}
+.lane .ll small{display:block;font-weight:400;color:var(--mute);font-size:11px}
+.lane.core{background:linear-gradient(90deg,#e9f7ef,#f3fbf6);border-top:2px solid var(--mint);border-bottom:2px solid var(--mint)}
+.phase{position:absolute;top:6px;height:22px;border-radius:6px;background:#eef3f2;color:var(--mute);font-size:11.5px;font-weight:600;display:flex;align-items:center;justify-content:center}
+.node{position:absolute;background:#fff;border:1.5px solid #c6d6d1;border-radius:11px;padding:7px 9px;font-size:12px;line-height:1.3;transition:opacity .25s,box-shadow .25s,border-color .25s;cursor:default}
+.node h6{margin:0 0 2px;font-size:12.5px;color:var(--teal)}
+.node p{margin:0;color:var(--mute);font-size:11px}
+.node .ev{position:absolute;top:-8px;right:8px;font-size:9.5px;padding:0 6px;border-radius:99px;background:var(--mintbg);color:var(--money);border:1px solid #cfeedd}
+.node .ev.i{background:var(--warnbg);color:var(--warn);border-color:#f3d6b6}
+.node .who{position:absolute;top:-8px;left:8px;font-size:9.5px;padding:0 6px;border-radius:99px;background:var(--teal);color:#fff}
+.node.core{border-color:var(--mint);border-width:2px;box-shadow:0 4px 12px #5cc48d22}
+.node.core .num{display:inline-flex;width:18px;height:18px;border-radius:50%;background:var(--teal);color:#fff;font-size:10.5px;align-items:center;justify-content:center;margin-right:4px}
+.node.offline{border-style:dashed;background:#fafafa}
+.node.dim{opacity:.18}
+.node.hot{border-color:var(--teal);box-shadow:0 0 0 4px #25576e22}
+.drop{position:absolute;background:var(--red);color:#fff;font-size:11px;font-weight:700;border-radius:99px;padding:2px 9px;white-space:nowrap;box-shadow:0 3px 8px #d6454555;display:none;z-index:4}
+.canvas.showdrop .drop{display:block}
+svg.edges{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+svg.edges path{fill:none;transition:opacity .25s}
+svg.edges .dim{opacity:.08}
+svg.edges text{font-size:10.5px;fill:var(--mute);paint-order:stroke;stroke:#fbfdfc;stroke-width:4px;stroke-linejoin:round}
+svg.edges g.dim text{opacity:.1}
+.side .box{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px;background:#fff}
+.side h3{margin:0 0 6px;font-size:14px;color:var(--teal)}
+.side p,.side li{font-size:13px;margin:4px 0}
+.side ul{padding-left:18px;margin:4px 0}
+.legend div{display:flex;align-items:center;gap:8px;font-size:12px;margin:5px 0}
+.legend svg{flex:0 0 42px;height:10px}
+/* ---------- funnel / problems ---------- */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:1000px){.g2{grid-template-columns:1fr}}
+.funnel .row{display:grid;grid-template-columns:150px 1fr 54px;gap:10px;align-items:center;margin:5px 0;font-size:12.5px}
+.funnel .bar{height:22px;border-radius:6px;background:var(--teal);position:relative}
+.funnel .row.hot .bar{background:var(--red)}
+.funnel .row .pct{font-weight:700;color:var(--teal);text-align:right}
+.funnel .row.hot .pct{color:var(--red)}
+.funnel .loss{font-size:11px;color:var(--red);margin:-2px 0 0 160px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border-bottom:1px solid #eef1f0;padding:8px 8px;text-align:left;vertical-align:top}
+th{color:var(--mute);font-weight:600;font-size:12px;background:#f6f9f8}
+tr.hot td:first-child{border-left:4px solid var(--red)}
+.pin{display:inline-block;background:var(--red);color:#fff;border-radius:99px;font-size:10.5px;font-weight:700;padding:0 7px;margin-right:4px}
+.tag{display:inline-block;font-size:11px;padding:0 7px;border-radius:99px;background:var(--warnbg);color:var(--warn)}
+/* ---------- principles ---------- */
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:1000px){.g3{grid-template-columns:1fr}}
+.pc{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff;display:flex;flex-direction:column}
+.pc .k{font-size:28px;font-weight:800;color:var(--mint);line-height:1}
+.pc h3{margin:6px 0 2px;color:var(--teal);font-size:17px}
+.pc h4{margin:10px 0 2px;font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.4px}
+.pc p,.pc li{font-size:13px;margin:3px 0}
+.pc ul{padding-left:18px;margin:2px 0}
+.pc .where{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.pc .where span{font-size:11.5px;background:var(--mintbg);color:var(--teal);border-radius:99px;padding:1px 8px}
+.pc .say{margin-top:auto}
+.metric{border:2px solid var(--mint);border-radius:14px;padding:12px 16px;margin-top:16px;background:var(--mintbg)}
+/* ---------- wireframes ---------- */
+.wfrow{display:flex;flex-wrap:wrap;gap:22px;justify-content:center;margin:14px 0}
+.phone{width:290px;border:10px solid #1d2b33;border-radius:34px;background:#fff;overflow:hidden;box-shadow:0 10px 30px #0002;font-size:12.5px}
+.phone .bar{height:20px}
+.phone .in{padding:4px 16px 18px}
+.wf-h{font-weight:700;color:var(--teal);font-size:16px;margin:6px 0 2px}
+.wf-m{color:var(--mute);font-size:11.5px}
+.wf-box{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}
+.wf-btn{background:var(--teal);color:#fff;text-align:center;border-radius:99px;padding:9px;margin-top:10px;font-weight:600}
+.wf-btn.ghost{background:#fff;color:var(--teal);border:1px solid var(--teal)}
+.wf-field{border:1px solid var(--line);border-radius:7px;padding:6px 8px;margin:4px 0;display:flex;justify-content:space-between;gap:10px}
+.wf-field b{text-align:right;font-weight:600}
+.ai{color:var(--money);font-size:10.5px;background:var(--mintbg);border-radius:4px;padding:0 5px}
+.steps{display:flex;gap:4px;margin:8px 0}.steps div{flex:1;height:5px;border-radius:3px;background:var(--line)}.steps div.on{background:var(--mint)}
+.offer{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0;position:relative}
+.offer.best{border:2px solid var(--mint)}
+.offer .pl{position:absolute;top:-9px;left:10px;background:var(--mint);color:#fff;font-size:10px;padding:1px 8px;border-radius:99px}
+.big{font-size:20px;font-weight:700;color:var(--teal)}
+.annot{font-size:12.5px;color:var(--mute);max-width:290px;padding-left:18px;margin:8px 0 0}
+.annot .p{display:inline-block;font-size:10.5px;font-weight:700;background:var(--teal);color:#fff;border-radius:99px;padding:0 6px;margin-right:3px}
+.desk{width:100%;max-width:980px;border:1px solid #c9d6d2;border-radius:12px;background:#fff;overflow:hidden;box-shadow:0 10px 30px #0001;font-size:12.5px}
+.desk .top{background:var(--teal);color:#fff;padding:8px 14px;display:flex;justify-content:space-between}
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:12px;background:#f3f7f6}
+.col h5{margin:0 0 6px;font-size:11.5px;color:var(--mute)}
+.deal{background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 8px;margin-bottom:6px}
+.deal .n{font-weight:600}
+.deal.al{border-left:3px solid var(--warn)}
+.deal .a{color:var(--warn);font-size:11px}
+.deal .ok{color:var(--money);font-size:11px}
+.kbd{font-size:12px;color:var(--mute);text-align:center;margin-top:10px}
+
+/* ---- stages ---- */
+.stepper{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.stepper button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 14px;font:600 13px inherit;color:var(--mute);cursor:pointer}
+.stepper button.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.stepper .ar{color:#b6c4c0}
+.stepper .hint{margin-left:auto;font-size:12.5px;color:var(--mute)}
+.lane .ll{display:none}
+.role{position:absolute;z-index:6;border-radius:16px;background:#fff;border:2px solid #c6d6d1;padding:14px 20px;box-shadow:0 8px 24px #1d2b3314;overflow:hidden;
+ transition:left .8s cubic-bezier(.65,0,.25,1),top .8s cubic-bezier(.65,0,.25,1),width .8s cubic-bezier(.65,0,.25,1),height .8s cubic-bezier(.65,0,.25,1),padding .8s,background .6s,border-color .6s,box-shadow .6s}
+.role.core{border-color:var(--mint);background:#f4fbf7}
+.role h5{margin:0;font-size:22px;color:var(--teal);transition:font-size .8s}
+.role .d{font-size:14px;color:var(--mute);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .3s}
+.role{display:flex;flex-direction:column;justify-content:center}
+.canvas:not(.s0) .role{justify-content:flex-start}
+.role .s{font-size:11px;color:var(--mute);opacity:0;position:absolute;left:10px;top:30px;transition:opacity .4s}
+.canvas:not(.s0) .role{background:transparent;border-color:transparent;box-shadow:none;padding:10px;pointer-events:none}
+.canvas:not(.s0) .role h5{font-size:13px}
+.canvas:not(.s0) .role .d{opacity:0}
+.canvas:not(.s0) .role .s{opacity:1;transition-delay:.6s}
+.canvas .node{transition:opacity .5s ease var(--d,0s),transform .5s ease var(--d,0s),box-shadow .25s,border-color .25s}
+.canvas.s0 .node{opacity:0!important;transform:translateY(12px) scale(.95);pointer-events:none;transition-delay:0s}
+.canvas svg.edges,.canvas .phase{transition:opacity .6s ease .9s}
+.canvas.s0 svg.edges,.canvas.s0 .phase{opacity:0;transition-delay:0s}
+svg.simple{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;transition:opacity .35s}
+svg.simple text{font-size:13.5px;font-weight:600;fill:var(--teal);paint-order:stroke;stroke:#fbfdfc;stroke-width:5px}
+.canvas:not(.s0) svg.simple{opacity:0}
+.canvas.s0{cursor:pointer}
+.callout{position:absolute;z-index:7;width:250px;background:#fff;border:1.5px solid var(--red);border-radius:12px;padding:9px 12px;font-size:12.5px;line-height:1.4;box-shadow:0 8px 22px #d6454522;opacity:0;transform:translateY(8px);transition:opacity .45s ease var(--d),transform .45s ease var(--d);pointer-events:none}
+.callout.o{border-color:var(--warn);box-shadow:0 8px 22px #c0661c22}
+.callout h6{margin:0 0 4px;font-size:13.5px;color:var(--red)}
+.callout.o h6{color:var(--warn)}
+.callout .now{color:var(--ink)}
+.callout .fix{margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);color:var(--money)}
+.callout .fix b{color:var(--mute);font-weight:600;font-size:11px;margin-right:4px}
+svg.cl{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:5;opacity:0;transition:opacity .4s}
+.canvas.s2 .callout{opacity:1;transform:none}
+.canvas.s2 svg.cl{opacity:1}
+.views.hide{display:none}
+/* ---- current-state screens ---- */
+.scr{display:grid;grid-template-columns:minmax(0,1.25fr) 1fr 1fr;gap:16px;align-items:start;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px;background:#fff}
+@media(max-width:1000px){.scr{grid-template-columns:1fr}}
+.scr .shot{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#f3f6f5}
+.scr .shot img{display:block;width:100%}
+.scr .shot .pinx{position:absolute;width:26px;height:26px;border-radius:50%;background:var(--red);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 5px #d6454533}
+.scr .shot.none{min-height:200px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mute);font-size:13px;padding:20px;border-style:dashed}
+.scr h4{margin:0 0 6px;font-size:14px;color:var(--teal)}
+.scr .k{font-size:11.5px;font-weight:700;letter-spacing:.3px;margin-bottom:4px}
+.scr .now .k{color:var(--red)}.scr .sol .k{color:var(--money)}
+.scr ul{margin:0;padding-left:18px;font-size:13px}.scr li{margin:3px 0}
+.scr .pr{display:inline-block;font-size:11px;background:var(--mintbg);color:var(--teal);border-radius:99px;padding:0 8px;margin-top:6px}
+.scr .step{display:inline-block;font-size:11px;background:var(--teal);color:#fff;border-radius:99px;padding:0 8px;margin-right:6px}
+
+.kick{font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--mint);margin-bottom:2px}
+.hero{padding:18px 0 16px}
+.ht{font-size:30px;line-height:1.25;margin:4px 0 6px;color:var(--teal)}
+.hs2{color:var(--mute);font-size:15px;margin:0}
+.pc.key{background:var(--teal);color:#fff;border-color:var(--teal)}
+.pc.key h4{color:#a6efc6}
+.pc .bigq{font-size:28px;font-weight:800;line-height:1.25;margin:4px 0 10px!important}
+.agenda{margin:4px 0;padding-left:0;list-style:none;counter-reset:a}
+.agenda li{counter-increment:a;display:flex;flex-direction:column;padding:7px 10px 7px 38px;border-radius:10px;position:relative;cursor:pointer;font-size:12.5px;color:var(--mute)}
+.agenda li b{font-size:14px;color:var(--teal)}
+.agenda li:before{content:counter(a);position:absolute;left:8px;top:9px;width:22px;height:22px;border-radius:50%;background:var(--mintbg);color:var(--teal);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+.agenda li:hover{background:var(--mintbg)}
+.h3{margin:0 0 8px;color:var(--teal);font-size:14px}
+.funnel2 .row{display:grid;grid-template-columns:130px 1fr 74px;gap:10px;align-items:center;margin:7px 0;font-size:12.5px}
+.funnel2 .bars{display:flex;flex-direction:column;gap:3px}
+.funnel2 .bars i{display:block;height:11px;border-radius:4px;background:#b9c9cf}
+.funnel2 .bars i.t{background:var(--mint)}
+.funnel2 .row.hot>span:first-child{color:var(--red);font-weight:700}
+.funnel2 .v{font-size:12px;text-align:right;color:var(--mute)}.funnel2 .v b{color:var(--money)}
+.fl{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--mute);margin-top:6px}
+.fl span.a,.fl span.b{width:18px;height:9px;border-radius:3px;background:#b9c9cf;display:inline-block;margin-left:8px}.fl span.b{background:var(--mint)}
+.ns{display:flex;align-items:baseline;gap:10px;margin:6px 0}
+.ns>span{font-size:34px;font-weight:800;color:var(--mute)}.ns>span.t{color:var(--money)}.ns i{font-style:normal;font-size:22px;color:var(--mute)}.ns small{color:var(--mute)}
+.mlist{margin:4px 0;padding-left:18px;font-size:13px}.mlist li{margin:4px 0}
+.hyp{font-size:12.5px;margin-top:8px;padding:6px 9px;border-radius:8px;background:#f6f9f8}
+.hyp b{display:block;font-size:11px;color:var(--mute);font-weight:700;letter-spacing:.3px}
+.hyp.red{background:var(--redbg)}.hyp.red b{color:var(--red)}
+.sw{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:16px;background:#fff}
+.swl{display:flex;align-items:center;gap:6px;margin-bottom:10px;font-size:15px;color:var(--teal)}
+.swl .step{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;font-size:12px;align-items:center;justify-content:center}
+.swl .prs{margin-left:auto;font-size:11.5px;background:var(--mintbg);color:var(--teal);border-radius:99px;padding:1px 9px;font-weight:600}
+.swg{display:grid;grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr);gap:12px;align-items:start}
+@media(max-width:900px){.swg{grid-template-columns:1fr}.swg .arrow{display:none}}
+.swg .arrow{font-size:26px;color:var(--mint);align-self:center;text-align:center}
+.lab{font-size:11.5px;font-weight:700;color:var(--mute);margin-bottom:6px;letter-spacing:.3px}
+.pro .lab{color:var(--money)}
+.shot{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#f3f6f5}
+.shot img{display:block;width:100%}
+.shot.none{min-height:220px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mute);font-size:12.5px;padding:18px;border-style:dashed;line-height:1.6}
+.iss,.sol{margin:8px 0 0;padding-left:18px;font-size:13px}.iss li,.sol li{margin:3px 0}
+.iss li::marker{color:var(--red)}.sol li::marker{color:var(--money)}
+.pro .phone{margin:0 auto}
+.kpi2{margin-top:8px;font-size:12px;color:var(--teal);background:var(--mintbg);border-radius:8px;padding:5px 9px;display:inline-block}
+#slot2 .stepper,#slot2 .views{display:none}
+body.st0 .legend{display:none}
+/* ===== Part 4 concepts ===== */
+.platform{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 16px}
+@media(max-width:900px){.platform{grid-template-columns:1fr}}
+.pf{display:flex;gap:12px;background:#f3f8f6;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13px}
+.pf b{color:var(--teal);font-size:14px}.pfi{font-size:22px;line-height:1}
+.swl .plat{font-size:11.5px;background:#eef1f8;color:#3b5aa8;border-radius:99px;padding:1px 9px;font-weight:600;margin-left:8px}
+.row4{display:grid;grid-template-columns:300px 28px 300px minmax(240px,1fr);gap:18px;align-items:start}
+.row5{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr) minmax(220px,.8fr);gap:18px;align-items:start}
+@media(max-width:1150px){.row4,.row5{grid-template-columns:1fr}.arr{display:none}.row4 .dev{margin:0 auto}}
+.arr{align-self:center;font-size:26px;color:var(--mint);text-align:center}
+.lab.pro{color:var(--money)}
+/* device: iPhone-like 390x844 (≈1:2.16) */
+.dev{width:300px;aspect-ratio:390/844;border:10px solid #10161a;border-radius:48px;background:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 18px 40px #10161a33,inset 0 0 0 1px #2a3338;font-family:"Wix Madefor Display",Poppins,-apple-system,system-ui,sans-serif}
+.isl{position:absolute;top:8px;left:50%;width:86px;height:24px;margin-left:-43px;background:#10161a;border-radius:20px;z-index:3}
+.sbar{height:40px;flex:0 0 40px;display:flex;justify-content:space-between;align-items:center;padding:6px 22px 0 26px;font-size:12px;color:#111}
+.sbar span{font-size:9px;letter-spacing:1px}
+.vw{flex:1;min-height:0;overflow:hidden;position:relative}
+.vw.shotv img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.vw.none{display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;margin:8px 10px;border:1.5px dashed #c9d6d2;border-radius:16px;color:var(--mute);font-size:12px;line-height:1.6;background:#f7faf9}
+.abar{flex:0 0 58px;background:#f2f2f4;border-top:1px solid #e1e1e5;display:flex;align-items:flex-start;justify-content:space-between;padding:8px 14px 0;gap:6px;font-size:11px;color:#333;position:relative}
+.abar i{flex:1;font-style:normal;background:#fff;border-radius:10px;text-align:center;padding:6px 0;font-size:11.5px;color:#111;box-shadow:0 1px 2px #0001}
+.abar span{padding-top:6px;font-weight:600}
+.abar:after{content:"";position:absolute;bottom:6px;left:50%;width:100px;margin-left:-50px;height:4px;border-radius:3px;background:#111}
+/* app content */
+.ah{display:flex;justify-content:space-between;align-items:center;padding:6px 16px 8px;border-bottom:1px solid #eef2f1}
+.ah .hl{font-size:11px;color:var(--teal);font-weight:600}
+.lg28{display:flex;align-items:center;gap:4px;font-weight:800;font-size:15px;color:var(--teal)}.lg28 b{color:var(--mint)}.lg28 svg{width:18px;height:18px}
+.ac{padding:10px 16px 0;font-size:11.5px;color:var(--ink);display:flex;flex-direction:column;gap:8px}
+.h1{font-size:17px;font-weight:700;line-height:1.22;color:var(--teal)}
+.meta{font-size:10.5px;color:var(--mute);margin-top:-4px}
+.who{display:flex;gap:9px;align-items:center;background:#f4faf7;border:1px solid #d5ece0;border-radius:12px;padding:8px 10px;font-size:11px;line-height:1.35}
+.av{flex:0 0 32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f0b76b,#e0895a);color:#fff;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center}
+.av.s{flex-basis:28px;height:28px;background:linear-gradient(135deg,#6bb8f0,#4a7fd1)}
+.ver{color:var(--money);font-weight:600;font-size:10px;margin-top:2px}
+.qc{border:1px solid #e3ebe8;border-radius:12px;padding:8px 10px}
+.qh{font-size:10.5px;color:var(--mute);display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.aib{white-space:nowrap;font-size:9.5px;color:var(--money);background:var(--mintbg);border-radius:99px;padding:1px 7px;font-weight:600}
+.qr{display:flex;justify-content:space-between;gap:8px;padding:3px 0;font-size:11px}.qr span{color:var(--mute)}.qr b{text-align:right}
+.chips{display:flex;flex-wrap:wrap;gap:4px}.chips span{font-size:10px;background:#f1f5f4;border-radius:99px;padding:3px 8px;color:var(--teal);font-weight:600}
+.cta{background:var(--teal);color:#fff;text-align:center;border-radius:99px;padding:10px;font-weight:700;font-size:12.5px}
+.lk{text-align:center;font-size:10.5px;color:var(--teal);text-decoration:underline;margin-top:-2px}
+.legal{font-size:8.5px;color:#8a979c;line-height:1.35;text-align:center}
+.prog span{font-size:10px;color:var(--mute);font-weight:600}.pb{height:4px;background:#e6eeeb;border-radius:3px;margin-top:4px}.pb i{display:block;height:100%;background:var(--mint);border-radius:3px}
+.fld label{display:block;font-size:10.5px;color:var(--teal);font-weight:600;margin-bottom:3px}
+.inp{border:1.5px solid var(--teal);border-radius:10px;padding:8px 10px;font-size:12.5px;font-weight:600}
+.inp.sel{border-color:#cfe0e6;font-weight:500;display:flex;justify-content:space-between}.inp.sel i{font-style:normal;color:var(--mute)}
+.why{font-size:10px;color:var(--mute);margin-top:4px;line-height:1.35}.why b{color:var(--teal)}
+.shield{display:flex;gap:7px;background:#eef6fb;border-radius:10px;padding:7px 9px;font-size:10.5px;line-height:1.35;color:#2d4a5c}
+.brk{display:flex;gap:8px;align-items:center;border-top:1px solid #eef2f1;padding-top:8px;font-size:10.5px;line-height:1.3}.brk small{color:var(--mute)}
+.bb{margin-left:auto;border:1px solid var(--teal);color:var(--teal);border-radius:99px;padding:3px 10px;font-weight:700;font-size:10.5px}
+.off{border:1px solid #e3ebe8;border-radius:12px;padding:8px 10px;position:relative}
+.off.best{border:2px solid var(--mint);padding-top:12px}
+.otag{position:absolute;top:-8px;left:10px;background:var(--mint);color:#fff;font-size:9px;font-weight:700;border-radius:99px;padding:1px 8px}
+.oh{display:flex;align-items:center;gap:6px;font-size:11px}.orr{margin-left:auto;color:var(--mute);font-size:10.5px}
+.lg{width:20px;height:20px;border-radius:6px;background:#1f3c88;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}.lg.b{background:#b43b3b}
+.op{margin:4px 0 2px}.op b{font-size:22px;color:var(--teal)}.op small{color:var(--mute);font-size:10.5px}
+.og{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:10.5px;font-weight:700}.og small{display:block;font-weight:400;color:var(--mute);font-size:9px}
+.vs{background:var(--warnbg);border-radius:10px;padding:7px 9px;font-size:10px;line-height:1.35}.vs b{display:block;color:#8a4a10}
+.dl{display:flex;gap:9px;align-items:center;border:1px solid #e3ebe8;border-radius:12px;padding:8px 10px;font-size:11.5px}.dl small{display:block;color:var(--mute);font-size:10px}
+.dl .ok{flex:0 0 22px;height:22px;border-radius:50%;background:var(--mintbg);color:var(--money);font-weight:700;display:flex;align-items:center;justify-content:center}
+.dl.todo{border:1.5px solid var(--teal);background:#f7fbfa}.dl .no{flex:0 0 22px;height:22px;border-radius:50%;background:var(--teal);color:#fff;font-weight:700;font-size:10px;display:flex;align-items:center;justify-content:center}
+.dl .cam{margin-left:auto;font-size:16px}
+/* trust pins */
+.t{position:relative}
+.tp{position:absolute;top:-7px;right:-9px;width:18px;height:18px;border-radius:50%;background:#ef6c1a;color:#fff;font:700 10.5px/18px system-ui;text-align:center;box-shadow:0 0 0 3px #ef6c1a33;z-index:2;text-decoration:none}
+.chips span.tp{background:#ef6c1a;color:#fff;padding:0;border-radius:50%;font-size:10.5px}
+.tps ol{list-style:none;padding:0;margin:0;counter-reset:t}
+.tps li{counter-increment:t;position:relative;padding:0 0 10px 30px;font-size:13px;line-height:1.45;color:var(--mute)}
+.tps li b{display:block;color:var(--ink);font-size:13.5px}
+.tps li:before{content:counter(t);position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:#ef6c1a;color:#fff;font:700 11px/20px system-ui;text-align:center}
+/* desktop browser */
+.bw{border:1px solid #cdd8d4;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 10px 26px #0001}
+.bw>img{display:block;width:100%}
+.bwc{display:flex;align-items:center;gap:5px;background:#eef1f0;padding:6px 10px;border-bottom:1px solid #dde3e1}
+.bwc i{width:9px;height:9px;border-radius:50%;background:#d3d9d7}.bwc span{margin-left:8px;flex:1;background:#fff;border-radius:6px;padding:2px 10px;font-size:11px;color:var(--mute)}
+.pp{display:grid;grid-template-columns:120px 1fr;min-height:300px;font-family:"Wix Madefor Display",Poppins,-apple-system,system-ui,sans-serif}
+.pps{border-right:1px solid #e6ecea;padding:10px 8px;font-size:11px;display:flex;flex-direction:column;gap:3px}
+.ppo{font-weight:700;color:var(--teal);margin:8px 4px 6px;font-size:11.5px}.ppo small{display:block;font-weight:400;color:var(--mute);font-size:9.5px}
+.ppn{padding:5px 8px;border-radius:7px;color:var(--teal)}.ppn.on{background:var(--mintbg);font-weight:700}
+.ppb{margin-top:auto;background:var(--teal);color:#fff;border-radius:99px;text-align:center;padding:6px;font-weight:700;font-size:10.5px}
+.ppm{padding:10px;background:#f6f9f8;display:flex;flex-direction:column;gap:8px;min-width:0}
+.ppk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ppk>div{background:#fff;border:1px solid #e3ebe8;border-radius:10px;padding:6px 9px}.ppk b{font-size:16px;color:var(--teal)}.ppk small{display:block;font-size:9.5px;color:var(--mute)}
+.ppk .hot b{color:#ef6c1a}.ppk .mny{background:var(--teal);border-color:var(--teal)}.ppk .mny b{color:#a6efc6}.ppk .mny small{color:#d5e9e2}
+.brd{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.bc h5{margin:0 0 5px;font-size:9.5px;color:var(--mute);display:flex;justify-content:space-between}.bc h5 i{font-style:normal;background:#e6eeeb;border-radius:99px;padding:0 5px}
+.dc{background:#fff;border:1px solid #e3ebe8;border-radius:8px;padding:5px 6px;margin-bottom:5px;font-size:10px;line-height:1.3}.dc small{display:block;color:var(--mute);font-size:9px}
+.dc.al{border-left:3px solid #ef6c1a}.dc.okc{border-left:3px solid var(--mint)}
+.nd{display:inline-block;margin-top:3px;font-size:9px;font-weight:700;color:var(--teal);background:var(--mintbg);border-radius:99px;padding:0 6px}
+</style></head><body>
+<header>
+<h1><span lang="zh">28Watt：从报价到批准</span><span lang="en">28Watt: from quote to approval</span></h1>
+<div style="display:flex;align-items:center"><span class="links"><a href="flow.html"><span lang="zh">泳道流程图</span><span lang="en">Swimlane</span></a><a href="ui.html"><span lang="zh">现有界面</span><span lang="en">Current UI</span></a><a href="installer.html"><span lang="zh">安装商流程</span><span lang="en">Installer journey</span></a></span>
+<div class="lang"><button data-l="zh">中文</button><button data-l="en">EN</button></div></div>
+</header>
+
+<nav class="tabs" id="tabs">
+<button data-t="0"><b>0</b><span lang="zh">开头</span><span lang="en">Intro</span></button>
+<button data-t="1"><b>1</b><span lang="zh">全局视角</span><span lang="en">Big picture</span></button>
+<button data-t="2"><b>2</b><span lang="zh">现状问题</span><span lang="en">Where it breaks</span></button>
+<button data-t="3"><b>3</b><span lang="zh">核心策略</span><span lang="en">Principles</span></button>
+<button data-t="4"><b>4</b><span lang="zh">落地方案</span><span lang="en">Current → proposed</span></button>
+</nav>
+
+<main>
+<!-- ================= 0. INTRO ================= -->
+<section class="panel" id="p0">
+<div class="hero">
+<div class="kick">28Watt · Senior Product Designer · <span lang="zh">面试讲解</span><span lang="en">Interview walkthrough</span></div>
+<h2 class="ht"><span lang="zh">从报价到批准：让更多业主走完申请</span><span lang="en">From quote to approval: getting more homeowners over the line</span></h2>
+<p class="hs2"><span lang="zh">一个外部视角的诊断和设计思路，所有判断都等你们的数据验证。</span><span lang="en">An outside-in diagnosis and design direction. Every claim here is a hypothesis to test against your data.</span></p>
+</div>
+<div class="g3">
+<div class="pc"><h4><span lang="zh">我做了什么</span><span lang="en">What I looked at</span></h4>
+<ul><li><span lang="zh">官网、partner 页面、安装商注册流程</span><span lang="en">Website, partners page and installer sign-up</span></li>
+<li><span lang="zh">前端代码里能看到的步骤和文案</span><span lang="en">Steps and copy visible in the front-end</span></li>
+<li><span lang="zh">Pylon、OpenSolar、GreenSketch 的集成公告</span><span lang="en">Pylon, OpenSolar and GreenSketch integrations</span></li>
+<li><span lang="zh">提交报价之前就停下，避免在你们系统里产生假线索</span><span lang="en">Stopped before submitting a quote, so I didn't create a fake lead</span></li></ul></div>
+<div class="pc"><h4><span lang="zh">今天讲四件事</span><span lang="en">Four parts</span></h4>
+<ol class="agenda">
+<li data-go="1"><b><span lang="zh">全局视角</span><span lang="en">Big picture</span></b><span lang="zh">谁参与了一笔贷款</span><span lang="en">Who touches a deal</span></li>
+<li data-go="2"><b><span lang="zh">现状问题</span><span lang="en">Where it breaks</span></b><span lang="zh">主流程在哪里断</span><span lang="en">Where the core flow leaks</span></li>
+<li data-go="3"><b><span lang="zh">核心策略</span><span lang="en">Principles</span></b><span lang="zh">三条原则和衡量方式</span><span lang="en">Three principles and how to measure</span></li>
+<li data-go="4"><b><span lang="zh">落地方案</span><span lang="en">Current → proposed</span></b><span lang="zh">现在的界面和改法</span><span lang="en">Today's screens and concepts</span></li></ol></div>
+<div class="pc key"><h4><span lang="zh">核心观点</span><span lang="en">The one idea</span></h4>
+<p class="bigq"><span lang="zh">这不是一个表单，<br>而是一场接力。</span><span lang="en">It's not a form.<br>It's a relay.</span></p>
+<p><span lang="zh">安装商发起，业主补完，贷款机构拿到完整材料才会批。任何一棒掉了，这单就没了。</span><span lang="en">The installer starts it, the homeowner finishes it, and the lender needs a complete file. Drop the baton anywhere and the deal is gone.</span></p></div>
+</div>
+<div class="say"><b><span lang="zh">开场可以这样说</span><span lang="en">Opening line</span></b><q>"I went through everything I could see from the outside. I'll walk you through how I understand the business, where I think people drop off, and what I'd try first. Please correct me wherever I'm wrong."</q></div>
+</section>
+
+<!-- ================= 1. BIG PICTURE ================= -->
+<section class="panel" id="p1">
+<div class="kick">Part 1</div>
+<p class="lead"><span lang="zh">一笔贷款经过哪些角色、哪些端</span><span lang="en">Who touches a deal, and on which surface</span></p>
+<p class="sub"><span lang="zh">先看最简单的四方，再展开成完整流程。标“推测”的部分要向 Jake 确认。</span><span lang="en">Start with four parties, then expand into the full flow. Anything marked “inferred” is to confirm with you.</span></p>
+<div id="mapblock">
+<div class="stepper" id="stepper">
+<button data-s="0">① <span lang="zh">核心角色</span><span lang="en">Core parties</span></button><span class="ar">→</span>
+<button data-s="1">② <span lang="zh">完整流程</span><span lang="en">Full flow</span></button>
+<span class="hint" id="hint"></span></div>
+<div class="views" id="views"></div>
+<div class="mapwrap">
+<div><div class="viewport" id="vp"><div class="canvas" id="cv"></div></div></div>
+<aside class="side">
+<div class="box" id="viewnote"></div>
+<div class="box legend"><h3><span lang="zh">图例</span><span lang="en">Legend</span></h3>
+<div><svg><line x1="0" y1="5" x2="42" y2="5" stroke="#25576e" stroke-width="4"/></svg><span lang="zh">业主主流程</span><span lang="en">Homeowner core flow</span></div>
+<div><svg><line x1="0" y1="5" x2="42" y2="5" stroke="#7a8d94" stroke-width="1.6"/></svg><span lang="zh">数据 / 系统流转</span><span lang="en">Data / system hand-off</span></div>
+<div><svg><line x1="0" y1="5" x2="42" y2="5" stroke="#c0661c" stroke-width="2.2"/></svg><span lang="zh">角色之间的交接</span><span lang="en">Hand-off between people</span></div>
+<div><svg><line x1="0" y1="5" x2="42" y2="5" stroke="#3b6fd1" stroke-width="1.8" stroke-dasharray="5 4"/></svg><span lang="zh">电话 / 短信 / 通知</span><span lang="en">Phone / SMS / notifications</span></div>
+<div><svg><line x1="0" y1="5" x2="42" y2="5" stroke="#1f8a57" stroke-width="3"/></svg><span lang="zh">资金</span><span lang="en">Money</span></div>
+<div><svg><line x1="0" y1="5" x2="42" y2="5" stroke="#8a6db8" stroke-width="1.6" stroke-dasharray="2 3"/></svg><span lang="zh">管理和配置</span><span lang="en">Admin &amp; configuration</span></div>
+</div>
+</aside>
+</div>
+</div>
+</section>
+
+<!-- ================= 2. WHERE IT BREAKS ================= -->
+<section class="panel" id="p2">
+<div class="kick">Part 2</div>
+<p class="lead"><span lang="zh">现状问题：主流程在哪里断</span><span lang="en">Where the core flow breaks</span></p>
+<p class="sub"><span lang="zh">同一张图，只保留主流程，标出从外部推测的问题。<b style="color:var(--red)">红色</b>是三个最可能的流失点，<b style="color:var(--warn)">橙色</b>是次要的体验问题。</span><span lang="en">Same map, core flow only, with issues observed from the outside. <b style="color:var(--red)">Red</b>: the three likely drop-offs. <b style="color:var(--warn)">Orange</b>: secondary experience issues.</span></p>
+<div id="slot2"></div>
+</section>
+
+<!-- ================= 3. PRINCIPLES ================= -->
+<section class="panel" id="p3">
+<div class="kick">Part 3</div>
+<p class="lead"><span lang="zh">核心策略：三条原则，对着三个流失点</span><span lang="en">Three principles, one per drop-off</span></p>
+<p class="sub"><span lang="zh">下面的漏斗数字全部是<b>假设</b>，用来说明思路和衡量方式，不是 28Watt 的真实数据。</span><span lang="en">All funnel numbers below are <b>assumed</b>, to show the reasoning and how I'd measure it. They are not 28Watt data.</span></p>
+<div class="g2">
+<div>
+<h3 class="h3"><span lang="zh">假设漏斗：每 100 个上传的报价</span><span lang="en">Assumed funnel: per 100 uploaded quotes</span></h3>
+<div class="funnel2" id="funnel"></div>
+<div class="fl"><span class="a"></span><span lang="zh">现在（假设）</span><span lang="en">Today (assumed)</span><span class="b"></span><span lang="zh">优化后目标（假设）</span><span lang="en">Target (assumed)</span></div>
+</div>
+<div>
+<div class="metric" style="margin-top:0"><b><span lang="zh">北极星指标</span><span lang="en">North-star metric</span></b><br>
+<span lang="zh">上传的报价里，走到 conditional approval 的比例</span><span lang="en">Share of uploaded quotes that reach conditional approval</span>
+<div class="ns"><span>22%</span><i>→</i><span class="t">32%</span><small><span lang="zh">假设目标</span><span lang="en">assumed target</span></small></div>
+<span class="note"><span lang="zh">为什么不选表单完成率：填完但缺材料被打回，也不算成功。为什么不选放款：周期太长，设计的影响看不清。</span><span lang="en">Not form completion: a complete form with missing documents isn't a win. Not settlement: too far downstream to see design's effect.</span></span></div>
+<h3 class="h3" style="margin-top:14px"><span lang="zh">过程指标</span><span lang="en">Supporting metrics</span></h3>
+<ul class="mlist"><li><span lang="zh">链接发出到业主打开的比例和时间</span><span lang="en">Link sent → opened (rate and time)</span></li><li><span lang="zh">每一步的完成率</span><span lang="en">Completion rate at each step</span></li><li><span lang="zh">因缺材料被打回的比例</span><span lang="en">Bounce rate for missing documents</span></li><li><span lang="zh">提交到批准的中位时长</span><span lang="en">Median time from submit to approval</span></li></ul>
+</div>
+</div>
+<div class="g3" style="margin-top:18px">
+<div class="pc"><div class="k">01</div><h3>Prefill, don't ask</h3>
+<p><span lang="zh">AI 能读的就别让人填，用户只做核对。</span><span lang="en">If AI can read it, the user only confirms it.</span></p>
+<div class="hyp"><b><span lang="zh">针对</span><span lang="en">Targets</span></b><span lang="zh">AI 等待、联系方式这些重复输入</span><span lang="en">The AI wait and re-typed details</span></div>
+<div class="hyp"><b><span lang="zh">假设目标</span><span lang="en">Assumed goal</span></b><span lang="zh">联系方式完成率 89% → 95%，填写时间减半</span><span lang="en">Contact step 89% → 95%, half the time to fill</span></div>
+<div class="hyp"><b><span lang="zh">怎么验证</span><span lang="en">How to test</span></b><span lang="zh">记录 AI 字段被修改的比例</span><span lang="en">Track how often AI fields get edited</span></div></div>
+<div class="pc"><div class="k">02</div><h3>Earn trust at the moment of asking</h3>
+<p><span lang="zh">在开口要信息的那一刻解释为什么。</span><span lang="en">Explain why, right where we ask.</span></p>
+<div class="hyp red"><b><span lang="zh">针对</span><span lang="en">Targets</span></b><span lang="zh">① 交接　② 填收入</span><span lang="en">① Hand-off　② Income step</span></div>
+<div class="hyp"><b><span lang="zh">假设目标</span><span lang="en">Assumed goal</span></b><span lang="zh">链接打开率 70% → 80%；基本资料 81% → 86%</span><span lang="en">Link opened 70% → 80%; basics 81% → 86%</span></div>
+<div class="hyp"><b><span lang="zh">怎么验证</span><span lang="en">How to test</span></b><span lang="zh">A/B 测试个性化落地页和字段说明</span><span lang="en">A/B test the personal landing and field copy</span></div></div>
+<div class="pc"><div class="k">03</div><h3>One deal, two views</h3>
+<p><span lang="zh">业主和安装商看到同一个进度，安装商能帮忙推进。</span><span lang="en">Both sides see the same status, so the installer can help.</span></p>
+<div class="hyp red"><b><span lang="zh">针对</span><span lang="en">Targets</span></b><span lang="zh">③ 补材料</span><span lang="en">③ Documents</span></div>
+<div class="hyp"><b><span lang="zh">假设目标</span><span lang="en">Assumed goal</span></b><span lang="zh">补齐材料 64% → 75%；安装商打给 broker 的电话变少</span><span lang="en">Documents 64% → 75%; fewer installer calls to brokers</span></div>
+<div class="hyp"><b><span lang="zh">怎么验证</span><span lang="en">How to test</span></b><span lang="zh">对比有无“一键提醒客户”的补件时长</span><span lang="en">Compare time-to-documents with and without nudges</span></div></div>
+</div>
+<div class="say"><b><span lang="zh">可以这样说</span><span lang="en">Say it like this</span></b><q>"These numbers are made up, but they show how I'd think: one north-star metric, and each principle tied to a specific drop-off we can measure."</q></div>
+</section>
+
+<!-- ================= 4. CURRENT → PROPOSED ================= -->
+<section class="panel" id="p4">
+<div class="kick">Part 4</div>
+<p class="lead"><span lang="zh">落地方案：现在的界面 → 可以怎么改</span><span lang="en">Current screens → proposed concepts</span></p>
+<p class="sub"><span lang="zh">按主流程顺序。左边是现在的界面，右边是概念稿，橙色数字标出每个<b>信任点</b>。概念里的人名、金额和利率都是虚构的。</span><span lang="en">In core-flow order. Left: today. Right: a concept, with orange numbers marking each <b>trust point</b>. Names, amounts and rates in concepts are fictional.</span></p>
+
+<div class="platform">
+<div class="pf"><div class="pfi">📱</div><div><b><span lang="zh">业主端 = 手机网页，不是 App</span><span lang="en">Homeowner = mobile web, not an app</span></b><br><span lang="zh">业主从安装商发的短信链接打开，用手机浏览器填写。28Watt 是 Next.js 响应式网站，App Store 和 Google Play 上都没有找到 28Watt App。所以概念稿用的是浏览器界面，底部是 Safari 地址栏，没有 App 的底部导航。</span><span lang="en">Homeowners open an SMS link from the installer and fill it in in their phone browser. 28Watt is a responsive Next.js site; no 28Watt app was found on the App Store or Google Play. So the concepts show a browser, with Safari's address bar and no app tab bar.</span></div></div>
+<div class="pf"><div class="pfi">💻</div><div><b><span lang="zh">安装商端 = 桌面网页 portal</span><span lang="en">Installer = desktop web portal</span></b><br><span lang="zh">28watt.com.au/installers。也可以从 Pylon、OpenSolar、GreenSketch 报价软件里点 28Watt 按钮发起。</span><span lang="en">28watt.com.au/installers, plus a 28Watt button inside Pylon, OpenSolar and GreenSketch.</span></div></div>
+</div>
+
+<!-- ROW 1 -->
+<div class="sw">
+<div class="swl"><span class="step">1</span><b><span lang="zh">入口和交接：业主第一次打开链接</span><span lang="en">Entry &amp; hand-off: the homeowner opens the link</span></b><span class="plat">📱 Mobile web</span><span class="prs">02 Trust · 01 Prefill</span></div>
+<div class="row4">
+<div class="colc"><div class="lab"><span lang="zh">现在 · 手机首页真实截图</span><span lang="en">Today · live mobile screenshot</span></div>
+<div class="dev"><div class="isl"></div><div class="sbar"><b>9:41</b><span>▂▄▆ ◔</span></div><div class="vw shotv"><img src="assets/home_mobile.jpg" alt=""></div><div class="abar"><span>AA</span><i>🔒 28watt.com.au</i><span>↻</span></div></div>
+<ul class="iss"><li><span lang="zh">不管从哪里来，都是同一个通用首页</span><span lang="en">Everyone lands on the same generic page</span></li><li><span lang="zh">第一步就要报价链接或 PDF</span><span lang="en">Step one asks for a quote link or PDF</span></li><li><span lang="zh">看不出是谁让我来的、接下来要做什么</span><span lang="en">Nothing says who sent me or what comes next</span></li></ul></div>
+<div class="arr">→</div>
+<div class="colc"><div class="lab pro"><span lang="zh">概念 · 个性化交接页</span><span lang="en">Concept · personal hand-off page</span></div>
+<div class="dev"><div class="isl"></div><div class="sbar"><b>9:41</b><span>▂▄▆ ◔</span></div><div class="vw">
+<div class="ah"><span class="lg28"><svg viewBox="0 0 24 24" fill="none" stroke="#25576e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9l8-6 8 6v12h-5"/><path d="M9 16l6-6m0 0h-4m4 0v4"/></svg><span><b>28</b>Watt</span></span><span class="hl">Help</span></div>
+<div class="ac">
+<div class="who t"><span class="av">TN</span><div><b>Tom Nguyen</b> from <b>SolarCo</b><br>started this application for you<div class="ver">✓ Verified 28Watt partner</div></div><span class="tp">1</span></div>
+<div class="h1">Hi Sarah, let's finish your green loan</div>
+<div class="meta">4 short steps · about 5 min · saves as you go</div>
+<div class="qc t"><div class="qh">From your SolarCo quote <span class="aib">✦ Read by AI · Edit</span></div>
+<div class="qr"><span>System</span><b>6.6kW solar + 13.5kWh battery</b></div><div class="qr"><span>Quote total</span><b>$18,400</b></div><span class="tp">2</span></div>
+<div class="chips t"><span>✓ No impact on your credit score</span><span>✓ Free, no fees</span><span>✓ 60+ lenders compared</span><span class="tp">3</span></div>
+<div class="cta">Continue</div>
+<div class="lk t">Wasn't expecting this message?<span class="tp">4</span></div>
+<div class="legal t">28Watt Trading Pty Ltd · Authorised Credit Representative 565491<span class="tp">5</span></div>
+</div></div><div class="abar"><span>AA</span><i>🔒 28watt.com.au</i><span>↻</span></div></div></div>
+<div class="tps"><div class="lab pro"><span lang="zh">信任点</span><span lang="en">Trust points</span></div>
+<ol>
+<li><b><span lang="zh">谁帮你开始的</span><span lang="en">Who started it</span></b><span lang="zh">安装商姓名、公司和“已认证合作伙伴”，先回答“这是不是诈骗”。</span><span lang="en">Installer name, company and a verified-partner badge answer “is this a scam?” first.</span></li>
+<li><b><span lang="zh">和刚才的报价连上</span><span lang="en">Continuity with the quote</span></b><span lang="zh">直接显示 AI 从报价里读到的内容，业主一眼认出这是自己的那单。</span><span lang="en">Showing what AI read from the quote proves this is the deal they just discussed.</span></li>
+<li><b><span lang="zh">先说承诺，再开口要信息</span><span lang="en">Promises before questions</span></b><span lang="zh">不影响信用分、免费、比较 60+ 家，都放在填任何信息之前。</span><span lang="en">No credit impact, free, 60+ lenders, all before we ask for anything.</span></li>
+<li><b><span lang="zh">给一个退出口</span><span lang="en">An escape hatch</span></b><span lang="zh">“没预料到这条消息？”能联系真人确认，反而更让人放心。</span><span lang="en">“Wasn't expecting this?” lets people check with a human, which builds trust.</span></li>
+<li><b><span lang="zh">可以核实的监管身份</span><span lang="en">Verifiable regulation</span></b><span lang="zh">真实域名，加上 ASIC 授权信贷代表编号 565491（公开信息）。</span><span lang="en">The real domain plus ASIC credit representative no. 565491 (public record).</span></li></ol>
+<div class="kpi2"><span lang="zh">看：链接打开率、首屏继续率</span><span lang="en">Watch: link-open rate, first-screen continue rate</span></div></div>
+</div></div>
+
+<!-- ROW 2 -->
+<div class="sw">
+<div class="swl"><span class="step">2</span><b><span lang="zh">基本资料：收入和开户银行</span><span lang="en">The basics: income &amp; bank</span></b><span class="plat">📱 Mobile web</span><span class="prs">02 Trust</span></div>
+<div class="row4">
+<div class="colc"><div class="lab"><span lang="zh">现在 · 提交报价后才看得到</span><span lang="en">Today · only visible after submitting a quote</span></div>
+<div class="dev"><div class="isl"></div><div class="sbar"><b>9:41</b><span>▂▄▆ ◔</span></div><div class="vw none"><div><b><span lang="zh">前端代码里的文案</span><span lang="en">Copy in the front-end</span></b><br>“Please provide the basics…”<br><small>StepProgressSidebar · QuoteFlowModal</small><br><br><span lang="zh">请 Jake 现场演示</span><span lang="en">Ask Jake for a walkthrough</span></div></div><div class="abar"><span>AA</span><i>🔒 28watt.com.au</i><span>↻</span></div></div>
+<ul class="iss"><li><span lang="zh">“不影响信用分”写在官网各处，但不一定在填收入的那一刻</span><span lang="en">“No credit impact” is on the site, but maybe not at the income field</span></li><li><span lang="zh">不确定能不能保存、稍后继续</span><span lang="en">Unclear whether progress is saved</span></li></ul></div>
+<div class="arr">→</div>
+<div class="colc"><div class="lab pro"><span lang="zh">概念 · 在提问处解释</span><span lang="en">Concept · explain at the field</span></div>
+<div class="dev"><div class="isl"></div><div class="sbar"><b>9:41</b><span>▂▄▆ ◔</span></div><div class="vw">
+<div class="ah"><span class="lg28"><svg viewBox="0 0 24 24" fill="none" stroke="#25576e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9l8-6 8 6v12h-5"/><path d="M9 16l6-6m0 0h-4m4 0v4"/></svg><span><b>28</b>Watt</span></span><span class="hl">✓ Saved</span></div>
+<div class="ac">
+<div class="prog"><span>Step 2 of 4 · About you</span><div class="pb"><i style="width:50%"></i></div></div>
+<div class="h1">A few basics</div>
+<div class="fld t"><label>Annual income (before tax)</label><div class="inp">$ 95,000</div><div class="why">ⓘ <b>Why we ask:</b> lenders use this to check what's affordable for you.</div><span class="tp">1</span></div>
+<div class="fld"><label>Who do you bank with?</label><div class="inp sel">Commonwealth Bank <i>▾</i></div><div class="why">Some lenders offer better rates to existing customers.</div></div>
+<div class="shield t">🛡 <span><b>This is not a credit check.</b> Nothing is shared until you choose a lender.</span><span class="tp">2</span></div>
+<div class="cta">Continue</div>
+<div class="lk t">Save and finish later<span class="tp">4</span></div>
+<div class="brk t"><span class="av s">JL</span><div><b>Jess, your 28Watt broker</b><br><small>Questions? Call or chat, Mon–Sat</small></div><span class="bb">Call</span><span class="tp">3</span></div>
+</div></div><div class="abar"><span>AA</span><i>🔒 28watt.com.au</i><span>↻</span></div></div></div>
+<div class="tps"><div class="lab pro"><span lang="zh">信任点</span><span lang="en">Trust points</span></div>
+<ol>
+<li><b><span lang="zh">就地说明为什么要问</span><span lang="en">Why we ask, at the field</span></b><span lang="zh">解释写在收入字段下面，不是放在页脚。</span><span lang="en">The reason sits under the income field, not in a footer.</span></li>
+<li><b><span lang="zh">说清楚数据去哪里</span><span lang="en">Say where the data goes</span></b><span lang="zh">不查征信；选定贷款机构之前，信息不会发出去。</span><span lang="en">No credit check; nothing is shared until they pick a lender.</span></li>
+<li><b><span lang="zh">有名字的真人</span><span lang="en">A named human</span></b><span lang="zh">贷款经纪是 28Watt 的核心价值，把 broker 放到界面上。</span><span lang="en">Brokers are 28Watt's edge, so put one in the interface.</span></li>
+<li><b><span lang="zh">可以先停下</span><span lang="en">Permission to pause</span></b><span lang="zh">保存后短信发回链接，不用一口气填完。</span><span lang="en">Save and get the link by SMS; no need to finish in one go.</span></li></ol>
+<div class="kpi2"><span lang="zh">看：这一步的完成率和停留时间</span><span lang="en">Watch: step completion and time on step</span></div></div>
+</div></div>
+
+<!-- ROW 3 -->
+<div class="sw">
+<div class="swl"><span class="step">3</span><b><span lang="zh">选方案</span><span lang="en">Choosing an offer</span></b><span class="plat">📱 Mobile web</span><span class="prs">02 Trust</span></div>
+<div class="row4">
+<div class="colc"><div class="lab"><span lang="zh">现在 · 公开的利率页（手机）</span><span lang="en">Today · public rates page (mobile)</span></div>
+<div class="dev"><div class="isl"></div><div class="sbar"><b>9:41</b><span>▂▄▆ ◔</span></div><div class="vw shotv"><img src="assets/greenloan_m.jpg" alt="" style="object-position:0 46%"></div><div class="abar"><span>AA</span><i>🔒 28watt.com.au</i><span>↻</span></div></div>
+<ul class="iss"><li><span lang="zh">公开页有利率列表，但个性化方案页要提交后才看得到</span><span lang="en">Public rate list; the personal offer screen is behind submission</span></li><li><span lang="zh">业主会拿 interest-free 分期来比，差别要一眼看懂</span><span lang="en">Homeowners compare with “interest-free”; the difference must be obvious</span></li></ul></div>
+<div class="arr">→</div>
+<div class="colc"><div class="lab pro"><span lang="zh">概念 · 按总成本排序</span><span lang="en">Concept · ranked by total cost</span></div>
+<div class="dev"><div class="isl"></div><div class="sbar"><b>9:41</b><span>▂▄▆ ◔</span></div><div class="vw">
+<div class="ah"><span class="lg28"><svg viewBox="0 0 24 24" fill="none" stroke="#25576e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9l8-6 8 6v12h-5"/><path d="M9 16l6-6m0 0h-4m4 0v4"/></svg><span><b>28</b>Watt</span></span><span class="hl">✓ Saved</span></div>
+<div class="ac">
+<div class="prog"><span>Step 3 of 4 · Your options</span><div class="pb"><i style="width:75%"></i></div></div>
+<div class="h1 t">Your 3 best options<span class="tp">1</span></div>
+<div class="meta">Compared across 60+ lenders · sorted by total cost</div>
+<div class="off best t"><span class="otag">Lowest total cost</span><div class="oh"><span class="lg">A</span><b>Lender A Green Loan</b></div>
+<div class="op"><b>$111</b><small>/fortnight</small></div>
+<div class="og"><span>2.79% p.a.<small>rate</small></span><span>3.90% p.a.*<small>comparison</small></span><span>$20,280<small>total repaid</small></span></div><span class="tp">2</span></div>
+<div class="off"><div class="oh"><span class="lg b">B</span><b>Lender B</b><span class="orr">$118/fn · 4.49%</span></div></div>
+<div class="vs t"><b>vs “interest-free” plans</b> These often add 15–25% to the price. Ask your installer for the cash price.<span class="tp">3</span></div>
+<div class="cta">Continue with Lender A</div>
+<div class="legal t">*Comparison rate based on $30,000 over 5 years. Warning: this comparison rate is true only for the example given and may not include all fees and charges.<span class="tp">4</span></div>
+</div></div><div class="abar"><span>AA</span><i>🔒 28watt.com.au</i><span>↻</span></div></div></div>
+<div class="tps"><div class="lab pro"><span lang="zh">信任点</span><span lang="en">Trust points</span></div>
+<ol>
+<li><b><span lang="zh">排序依据说清楚</span><span lang="en">Say how it's ranked</span></b><span lang="zh">按总成本排序，而不是按谁给的佣金高。</span><span lang="en">Ranked by total cost, not by commission.</span></li>
+<li><b><span lang="zh">月供旁边就是总成本</span><span lang="en">Total cost next to repayment</span></b><span lang="zh">月供、利率、comparison rate、总还款放在一起。</span><span lang="en">Repayment, rate, comparison rate and total repaid together.</span></li>
+<li><b><span lang="zh">品牌主张落到这张卡上</span><span lang="en">The brand promise, on the card</span></b><span lang="zh">把“避开 interest-free 陷阱”变成一句具体对比。</span><span lang="en">“Avoid the interest-free trap” becomes a concrete comparison.</span></li>
+<li><b><span lang="zh">合规写全</span><span lang="en">Compliance, done properly</span></b><span lang="zh">澳洲个人贷款的 comparison rate 按 $30,000、5 年计算，并附警示语。正式上线前需要合规审核。</span><span lang="en">Australian personal-loan comparison rates use $30,000 over 5 years, with the warning. Needs compliance review.</span></li></ol>
+<div class="kpi2"><span lang="zh">看：选方案的比例和犹豫时间</span><span lang="en">Watch: offer selection rate and decision time</span></div></div>
+</div></div>
+
+<!-- ROW 4 -->
+<div class="sw">
+<div class="swl"><span class="step">4</span><b><span lang="zh">补材料</span><span lang="en">Documents</span></b><span class="plat">📱 Mobile web</span><span class="prs">03 Two views</span></div>
+<div class="row4">
+<div class="colc"><div class="lab"><span lang="zh">现在 · 提交报价后才看得到</span><span lang="en">Today · only visible after submitting a quote</span></div>
+<div class="dev"><div class="isl"></div><div class="sbar"><b>9:41</b><span>▂▄▆ ◔</span></div><div class="vw none"><div><b><span lang="zh">前端代码里的组件</span><span lang="en">Component in the front-end</span></b><br>DocumentStatusList<br><br><span lang="zh">官网宣传图里的客户消息：</span><span lang="en">Customer message on the partners page:</span><br><i>“Can you resend the install cert? I only got page 1.”</i></div></div><div class="abar"><span>AA</span><i>🔒 28watt.com.au</i><span>↻</span></div></div>
+<ul class="iss"><li><span lang="zh">手机上找工资单、拍证件很麻烦</span><span lang="en">Payslips and ID on a phone are a hassle</span></li><li><span lang="zh">“只收到第 1 页”说明上传容易出错</span><span lang="en">“Only got page 1” suggests upload errors</span></li><li><span lang="zh">安装商看不到缺什么，只能打电话问</span><span lang="en">Installers can't see what's missing, so they call</span></li></ul></div>
+<div class="arr">→</div>
+<div class="colc"><div class="lab pro"><span lang="zh">概念 · 材料清单</span><span lang="en">Concept · document checklist</span></div>
+<div class="dev"><div class="isl"></div><div class="sbar"><b>9:41</b><span>▂▄▆ ◔</span></div><div class="vw">
+<div class="ah"><span class="lg28"><svg viewBox="0 0 24 24" fill="none" stroke="#25576e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9l8-6 8 6v12h-5"/><path d="M9 16l6-6m0 0h-4m4 0v4"/></svg><span><b>28</b>Watt</span></span><span class="hl">✓ Saved</span></div>
+<div class="ac">
+<div class="prog"><span>Step 4 of 4 · Documents</span><div class="pb"><i style="width:92%"></i></div></div>
+<div class="h1">Almost there</div>
+<div class="meta">2 of 3 done · the last one takes about 2 min</div>
+<div class="dl"><span class="ok">✓</span><div><b>Driver licence</b><small>Verified</small></div></div>
+<div class="dl t"><span class="ok">✓</span><div><b>Bank statements</b><small>Connected securely · read-only</small></div><span class="tp">1</span></div>
+<div class="dl todo t"><span class="no">3</span><div><b>Latest payslip</b><small>Photo or PDF · all pages</small></div><span class="cam">📷</span><span class="tp">2</span></div>
+<div class="shield t">🔒 <span><b>Tom at SolarCo sees what's outstanding</b>, never your documents.</span><span class="tp">3</span></div>
+<div class="cta">Take a photo of your payslip</div>
+<div class="lk t">Remind me tonight at 7pm<span class="tp">4</span></div>
+</div></div><div class="abar"><span>AA</span><i>🔒 28watt.com.au</i><span>↻</span></div></div></div>
+<div class="tps"><div class="lab pro"><span lang="zh">信任点</span><span lang="en">Trust points</span></div>
+<ol>
+<li><b><span lang="zh">只读连接银行</span><span lang="en">Read-only bank connection</span></b><span lang="zh">如果贷款机构支持，可以授权只读，不用导出流水。需要确认 28Watt 现在是否支持。</span><span lang="en">Where lenders support it, a read-only link replaces exporting statements. To confirm with 28Watt.</span></li>
+<li><b><span lang="zh">拍照时就检查</span><span lang="en">Check at capture</span></b><span lang="zh">提示“所有页面”，上传时检查页数和清晰度，避免被打回。</span><span lang="en">“All pages” hint, with page-count and legibility checks to prevent bounces.</span></li>
+<li><b><span lang="zh">进度共享，文件不共享</span><span lang="en">Share status, not documents</span></b><span lang="zh">安装商只看到缺什么，看不到文件内容。这是“两种视角”的隐私边界。</span><span lang="en">The installer sees what's missing, never the files. The privacy line in “two views”.</span></li>
+<li><b><span lang="zh">用提醒代替放弃</span><span lang="en">Reminders over drop-off</span></b><span lang="zh">“今晚 7 点提醒我”，业主回家再拍工资单。</span><span lang="en">“Remind me at 7pm”, when the payslip is at hand.</span></li></ol>
+<div class="kpi2"><span lang="zh">看：补齐材料的比例、被打回的比例</span><span lang="en">Watch: documents-complete rate, bounce rate</span></div></div>
+</div></div>
+
+<!-- ROW 5 -->
+<div class="sw">
+<div class="swl"><span class="step">5</span><b><span lang="zh">安装商 portal：跟进每一单</span><span lang="en">Installer portal: tracking every deal</span></b><span class="plat">💻 Desktop web</span><span class="prs">03 Two views</span></div>
+<div class="row5">
+<div class="colc"><div class="lab"><span lang="zh">现在 · 官网 partner 页宣传图</span><span lang="en">Today · partners-page screenshot</span></div>
+<div class="bw"><div class="bwc"><i></i><i></i><i></i><span>28watt.com.au/installers/dashboard</span></div><img src="assets/portal_always-in-the-know.png" alt=""></div>
+<ul class="iss"><li><span lang="zh">alert 收件箱要一条条看，看不出哪单卡在哪</span><span lang="en">An alerts inbox read one by one; hard to see what's stuck</span></li><li><span lang="zh">佣金是最大动力，但不在首页</span><span lang="en">Commission is the main motivation, but not on the home view</span></li></ul></div>
+<div class="colc"><div class="lab pro"><span lang="zh">概念 · Pipeline 看板</span><span lang="en">Concept · pipeline board</span></div>
+<div class="bw"><div class="bwc"><i></i><i></i><i></i><span>🔒 28watt.com.au/installers/deals</span></div>
+<div class="pp"><div class="pps"><span class="lg28"><svg viewBox="0 0 24 24" fill="none" stroke="#25576e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9l8-6 8 6v12h-5"/><path d="M9 16l6-6m0 0h-4m4 0v4"/></svg><span><b>28</b>Watt</span></span><div class="ppo">SolarCo<small>Maya Okafor · Admin</small></div><div class="ppn on">Deals</div><div class="ppn">Alerts</div><div class="ppn">Payouts</div><div class="ppn">Team</div><div class="ppb">+ New referral</div></div>
+<div class="ppm"><div class="ppk t"><div><b>12</b><small>Active deals</small></div><div class="hot"><b>2</b><small>Need you</small></div><div class="mny"><b>$2,140</b><small>Commission this month</small></div><span class="tp">1</span></div>
+<div class="brd t">
+<div class="bc"><h5>Referred <i>3</i></h5><div class="dc al"><b>Sarah Lee</b><small>$18.4k · Link not opened · 2d</small><span class="nd">↻ Nudge</span></div><div class="dc"><b>J. Patel</b><small>$9.8k · Sent 2h ago</small></div></div>
+<div class="bc"><h5>Customer filling <i>4</i></h5><div class="dc"><b>M. Chen</b><small>$24k · Step 3 of 4</small></div><div class="dc"><b>L. Park</b><small>$12k · Step 2 of 4</small></div></div>
+<div class="bc"><h5>Docs needed <i>2</i></h5><div class="dc al"><b>D. Rowe</b><small>$15k · Payslip missing</small><span class="nd">Reminded today</span></div></div>
+<div class="bc"><h5>With lender <i>2</i></h5><div class="dc"><b>A. Kim</b><small>$31k · Decision ETA 1 day</small></div></div>
+<div class="bc"><h5>Approved <i>1</i></h5><div class="dc okc"><b>B. Tran</b><small>$34k · Upload proof of install</small></div></div>
+<span class="tp">2</span></div>
+</div></div></div></div>
+<div class="tps"><div class="lab pro"><span lang="zh">信任点和价值</span><span lang="en">Trust &amp; value points</span></div>
+<ol>
+<li><b><span lang="zh">佣金和“需要你”放最上面</span><span lang="en">Commission and “needs you” on top</span></b><span lang="zh">安装商用 portal 的动力，一打开就看到。</span><span lang="en">The reason installers use the portal, visible on arrival.</span></li>
+<li><b><span lang="zh">按阶段看每单在谁手里</span><span lang="en">Each deal by stage</span></b><span lang="zh">和业主看到的是同一个进度，橙色表示需要安装商处理，可以一键提醒客户。可以联系 ByteDance 骑手调度 Order Board 的经验来讲。</span><span lang="en">Same status the homeowner sees; orange means the installer can act, with one-tap nudges. Links to the ByteDance dispatch Order Board story.</span></li></ol>
+<div class="kpi2"><span lang="zh">看：提醒后的补件时间、安装商来电次数</span><span lang="en">Watch: time to documents after a nudge, installer calls</span></div>
+<p class="note" style="margin-top:10px"><span lang="zh">完整的安装商现状流程（13 步）：</span><span lang="en">Full 13-step installer journey: </span><a href="installer.html" target="_blank">installer.html ↗</a></p></div>
+</div></div>
+
+<div class="g2" style="margin-top:18px">
+<div class="pc"><h4><span lang="zh">前两周怎么做</span><span lang="en">First two weeks</span></h4>
+<ol class="mlist"><li><span lang="zh">拉漏斗：从上传报价到批准，每一步的流失</span><span lang="en">Pull the funnel from quote upload to approval</span></li><li><span lang="zh">旁听几通 broker 电话</span><span lang="en">Sit in on a few broker calls</span></li><li><span lang="zh">访谈 5 个安装商、5 个中途流失的业主</span><span lang="en">Talk to 5 installers and 5 homeowners who dropped off</span></li><li><span lang="zh">挑风险最大的一步做原型，两周内测试</span><span lang="en">Prototype the riskiest step and test it within two weeks</span></li></ol></div>
+<div class="pc"><h4><span lang="zh">想向 Jake 确认</span><span lang="en">Questions for you</span></h4>
+<ul class="mlist"><li>Where do most applications drop off today?</li><li>What share start from installers, integrations, or direct?</li><li>Who usually finishes the application: the homeowner alone, or with the installer?</li><li>What does success look like at six months?</li></ul></div>
+</div>
+<div class="say"><b><span lang="zh">收尾一句</span><span lang="en">Closing line</span></b><q>"These are hypotheses from the outside. In week one I'd check them against your data, then test the riskiest step within two weeks."</q></div>
+</section>
+
+</main>
+
+
+<script>
+const T=(zh,en)=>`<span lang="zh">${zh}</span><span lang="en">${en}</span>`;
+/* ---------- map data ---------- */
+const W=1480,H=780;
+const LANES=[
+ {id:'inst',y:34,h:150,zh:'安装商',en:'Installer',szh:'销售 · 老板',sen:'Sales rep · owner'},
+ {id:'home',y:212,h:180,core:1,zh:'业主',en:'Homeowner',szh:'核心：填表申请',sen:'Core: application'},
+ {id:'ops',y:420,h:170,zh:'28Watt 内部',en:'28Watt internal',szh:'系统 · Broker · Admin',sen:'Systems · broker · admin'},
+ {id:'ext',y:610,h:170,zh:'贷款机构与外部',en:'Lenders & external',szh:'60+ 家贷款机构',sen:'60+ lenders'}];
+const PH=[{x:130,w:330,zh:'A 线下成交',en:'A Offline sale'},{x:470,w:640,zh:'B 申请',en:'B Apply'},{x:1120,w:170,zh:'C 审批',en:'C Approve'},{x:1300,w:170,zh:'D 签约 · 安装 · 放款',en:'D Sign · install · pay'}];
+const N={}; const add=(id,x,y,w,h,o)=>N[id]={id,x,y,w,h,...o};
+// installer lane
+add('i1',130,62,150,74,{lane:'inst',off:1,ev:'v',zh:'上门报价',en:'Site visit & quote',dzh:'线下，不在平台上',den:'Offline, not on the platform'});
+add('i2',300,62,170,74,{lane:'inst',ev:'v',zh:'报价软件',en:'Quoting software',dzh:'Pylon · OpenSolar · GreenSketch，里面有 28Watt 按钮',den:'Pylon · OpenSolar · GreenSketch, with a 28Watt button'});
+add('i3',500,62,170,74,{lane:'inst',ev:'v',zh:'Partner Portal · 新建申请',en:'Partner portal · New referral',dzh:'上传报价，AI 预填客户信息',den:'Upload quote, AI prefills customer'});
+add('i4',860,62,180,74,{lane:'inst',ev:'v',zh:'Portal · 进度和 Alerts',en:'Portal · Status & alerts',dzh:'批准、需要处理、客户消息',den:'Approved, action needed, messages'});
+add('i5',1120,62,160,74,{lane:'inst',ev:'v',zh:'安装 + 上传安装证明',en:'Install + proof of install',dzh:'发票、合规证书、照片',den:'Invoice, compliance cert, photos'});
+add('i6',1300,62,160,74,{lane:'inst',ev:'v',zh:'收款和佣金',en:'Payout & commission',dzh:'货款来自贷款机构，佣金来自 28Watt',den:'Funds from lender, commission from 28Watt'});
+// core lane
+const CORE=[['入口','Entry','短信链接 / 官网 / 报价软件按钮','SMS link / website / quoting tool','v'],['上传报价','Upload quote','链接或 PDF','Link or PDF','v'],['AI 读取与核对','AI reads quote','10–30 秒','10–30 sec','v'],['联系方式','Contact details','地址搜索 · 短信验证码','Address · SMS code','v'],['基本资料','The basics','收入 · 开户银行','Income · bank','v'],['对比方案','Compare offers','选一个贷款方案','Pick one offer','v'],['补材料','Documents','证件 · 工资单 · 流水','ID · payslips · statements','i'],['签约','Sign contract','和贷款机构电子签','E-sign with lender','i']];
+CORE.forEach((c,i)=>add('c'+(i+1),130+i*168,250,148,104,{lane:'home',core:1,num:i+1,zh:c[0],en:c[1],dzh:c[2],den:c[3],ev:c[4]}));
+// internal lane
+add('w5',130,458,170,96,{lane:'ops',ev:'i',who:'Admin',zh:'Admin 后台',en:'Admin console',dzh:'审核安装商 · 团队权限 · 利率配置 · 给安装商结算佣金',den:'Installer approval · roles · rate config · installer commission'});
+add('w1',330,458,170,96,{lane:'ops',ev:'v',zh:'AI 报价解析',en:'AI quote parser',dzh:'提取设备、金额、客户信息',den:'Extracts system, amount, customer'});
+add('w2',634,458,180,96,{lane:'ops',ev:'v',zh:'贷款匹配引擎',en:'Lender matching',dzh:'匹配 60+ 家，筛掉可能拒贷的',den:'Matches 60+ lenders, filters likely declines'});
+add('w3',900,458,180,96,{lane:'ops',ev:'i',who:'Broker',zh:'Broker 工作台 / CRM',en:'Broker workspace / CRM',dzh:'审核材料，把申请做强再递交',den:'Reviews docs, strengthens and submits'});
+add('w4',1130,458,170,96,{lane:'ops',ev:'i',zh:'电话 · 短信 · 邮件',en:'Phone · SMS · email',dzh:'broker 跟进业主和安装商',den:'Broker follows up both sides'});
+// external lane
+add('b1',634,650,180,80,{lane:'ext',ev:'i',zh:'征信机构',en:'Credit bureau',dzh:'Equifax · Experian · illion',den:'Equifax · Experian · illion'});
+add('b2',900,650,180,80,{lane:'ext',ev:'v',zh:'贷款机构系统',en:'Lender systems',dzh:'评估，给出有条件批准',den:'Assess, conditional approval'});
+add('b3',1130,650,160,80,{lane:'ext',ev:'i',zh:'合同和电子签',en:'Contract & e-sign',dzh:'在贷款机构的系统里',den:'In the lender’s system'});
+add('b4',1310,650,150,80,{lane:'ext',ev:'i',zh:'放款',en:'Settlement',dzh:'货款打给安装商',den:'Funds paid to installer'});
+
+// edges: [from,to,type,zh,en,side]
+const E=[
+ ['i1','i2','data'],
+ ['i2','c1','hand','28Watt 按钮','28Watt button'],
+ ['i3','c1','hand','短信链接 SMS','SMS link'],
+ ['i3','i4','data','',''],['i4','i5','data','',''],['i5','i6','data','',''],
+ ['c1','c2','core'],['c2','c3','core'],['c3','c4','core'],['c4','c5','core'],['c5','c6','core'],['c6','c7','core'],['c7','c8','core'],
+ ['c2','w1','data','报价文件','quote file'],['w1','c3','data','预填','prefill'],
+ ['c5','w2','data','收入 · 银行','income · bank'],['w2','c6','data','方案','offers'],
+ ['c7','w3','data','材料','documents'],
+ ['w3','b2','hand','递交','submit'],['b2','b1','data','查征信','credit check'],
+ ['c6','i4','note','状态同步','status sync'],
+ ['b2','w3','note','批准结果','outcome'],
+ ['w3','w4','note','',''],['w4','c7','note','电话跟进','follow-up calls'],
+ ['c8','b3','data','',''],['i5','b4','data','安装证明','proof'],['b3','b4','data','',''],
+ ['b4','i6','money','货款','funds'],
+ ['w5','i3','admin','审核 · 权限','approval · roles'],['w5','w2','admin','利率配置','rate config']];
+const STY={core:['#25576e',4,''],data:['#7a8d94',1.6,''],hand:['#c0661c',2.4,''],note:['#3b6fd1',1.8,'5 4'],money:['#1f8a57',3,''],admin:['#8a6db8',1.6,'2 3']};
+
+const VIEWS=[
+ {id:'all',zh:'全部',en:'All',nodes:null,
+  nzh:['这张图把一笔绿色贷款的整个生命周期放在一起：<b>4 类角色</b>，至少 <b>5 个端</b>：报价软件、安装商 portal、业主申请流程、28Watt 内部的 broker 和 admin 工具，以及贷款机构的系统。','中间绿色的一条是<b>业主填表的主流程</b>，上面是安装商，下面是 28Watt 内部和贷款机构。'],
+  nen:['One green loan, end to end: <b>four groups of people</b> and at least <b>five surfaces</b>: quoting tools, the installer portal, the homeowner application, 28Watt’s broker and admin tools, and lender systems.','The green band is the <b>homeowner core flow</b>. Installers sit above it; 28Watt internal and lenders sit below.'],
+  say:"I'd start with the big picture: who touches the deal, and when. Then I'd zoom in on the homeowner's core flow."},
+ {id:'home',zh:'业主视角',en:'Homeowner',nodes:['c1','c2','c3','c4','c5','c6','c7','c8'],
+  nzh:['业主是唯一要<b>从头填到尾</b>的人，而且多数时候是一个人在手机上填。','8 步里只有第 ⑧ 步在贷款机构那边，前 7 步都在 28Watt 的界面里，所以这是设计最能发力的地方。'],
+  nen:['The homeowner is the only person who goes <b>start to finish</b>, usually alone on a phone.','Seven of the eight steps happen in 28Watt’s own UI, so this is where design has the most leverage.'],
+  say:"Seven of these eight steps live in your own product, so that's where design can move the number most."},
+ {id:'inst',zh:'安装商视角',en:'Installer',nodes:['i1','i2','i3','i4','i5','i6','c1'],
+  nzh:['安装商有<b>两个入口</b>：在自己的报价软件里点 28Watt 按钮，或者进 portal 新建申请。','发起之后他就看不见过程了，只能等 Alerts 或者打电话问。他最关心两件事：哪单卡住了，什么时候到钱。'],
+  nen:['Installers start from <b>two places</b>: the 28Watt button in their quoting tool, or a new referral in the portal.','After that they mostly wait for alerts or call. They care about two things: what is stuck, and when they get paid.'],
+  say:"For installers, the questions are simple: which deal is stuck, and when do I get paid?"},
+ {id:'ops',zh:'28Watt 内部',en:'28Watt internal',nodes:['w1','w2','w3','w4','w5','c3','c6','c7'],
+  nzh:['内部分<b>系统</b>（AI 解析、贷款匹配）和<b>人</b>（broker 和电话跟进）两部分。','<b>Admin 后台</b>是推测的：审核安装商、管理团队权限、配置贷款机构和利率、结算佣金，这些功能一定有人在做，但具体是独立后台还是 CRM 加表格，需要问。'],
+  nen:['Internally there are <b>systems</b> (AI parsing, lender matching) and <b>people</b> (brokers and phone follow-up).','The <b>admin console</b> is inferred: someone approves installers, manages roles, configures lenders and rates, and pays commission. Whether that is a real console or a CRM plus spreadsheets is a question to ask.'],
+  say:"How much of the broker and admin work is in a proper tool today, and how much is phone calls and spreadsheets?"},
+ {id:'ext',zh:'贷款机构',en:'Lender',nodes:['b1','b2','b3','b4','w3','c8','i6'],
+  nzh:['贷款机构在<b>递交之后</b>才参与：查征信、评估、给有条件批准，然后签合同、放款。','这部分 28Watt 控制不了，但可以让前面递交的材料<b>一次就完整</b>，减少来回补件。'],
+  nen:['Lenders join <b>after submission</b>: credit check, assessment, conditional approval, then contract and settlement.','28Watt doesn’t control this part, but it can make sure the file is <b>complete the first time</b>, so there’s less back-and-forth.'],
+  say:"We can't control the lender, but we can make sure the file is complete the first time."},
+ {id:'money',zh:'资金流',en:'Money flow',nodes:['b2','b3','b4','i6','w5'],
+  nzh:['钱有<b>两条</b>：贷款机构把货款打给安装商；贷款机构付佣金给 28Watt，28Watt 再分一部分推荐佣金给安装商。','业主和安装商都不付费，这是 28Watt 对比 interest-free 分期的核心卖点。'],
+  nen:['Money moves <b>two ways</b>: the lender pays the installer for the job, and pays 28Watt a commission, part of which goes to the installer as a referral fee.','Neither the homeowner nor the installer pays a fee. That is 28Watt’s core pitch against “interest-free” plans.'],
+  say:"Commission is the installer's strongest reason to use the portal, so I'd put it front and centre."},
+ {id:'drop',zh:'可能的流失点',en:'Likely drop-offs',nodes:['i3','c1','c4','c5','c6','c7'],drop:1,
+  nzh:['红点是从外部推测的三个流失点：① 交接那一刻，② 填收入时，③ 补材料。','这只是假设，要先看漏斗数据验证。'],
+  nen:['Red markers show three likely drop-offs: ① the hand-off, ② the income step, ③ documents.','These are hypotheses to check against funnel data first.'],
+  say:"That's my hypothesis from the outside, but I'd validate it with funnel data first."}];
+
+const ROLES=[['上门卖太阳能和电池，带来需要贷款的客户','Sells solar and batteries, brings in customers'],['需要贷款，自己在手机上填完申请','Needs finance, applies alone on a phone'],['AI 加 broker，匹配 60+ 家贷款机构','AI plus brokers match 60+ lenders'],['审批、签合同、放款','Approves, signs, pays out']];
+const SIMPLE=[
+ ['M740,159 L740,250','#c0661c',[754,194],['带来客户 · 发起申请','Refers the customer']],
+ ['M740,352 L740,453','#25576e',[754,440],['提交申请和材料','Submits application & documents']],
+ ['M740,555 L740,643','#25576e',[754,592],['匹配并递交','Matches & submits']],
+ ['M970,695 C1190,695 1190,109 972,109','#1f8a57',[1150,307],['放款给安装商','Pays the installer']],
+ ['M510,505 C320,505 320,109 508,109','#1f8a57',[344,307,'end'],['推荐佣金','Referral commission'],1]];
+const CALL=[
+ {id:'c1',x:80,y:600,t:T('① 交接那一刻','① The hand-off'),now:T('安装商走了，业主一个人收到陌生公司的短信链接。','The installer has left; the homeowner gets a link from an unknown company.'),fix:T('写明“Tom 帮你开始了申请”，还剩几步、不影响信用分。','“Tom started this for you”, steps left, no credit impact.')},
+ {id:'c3',x:405,y:600,o:1,t:T('AI 读报价要等','AI read wait'),now:T('等 10–30 秒，只有一个 loading 文案。','10–30 sec with a single loading message.'),fix:T('逐项显示读到的内容，顺便让用户核对。','Reveal fields as they are read; confirm on the spot.')},
+ {id:'c5',x:740,y:600,t:T('② 填收入时','② The income step'),now:T('担心影响信用分，不想透露收入。','Credit-score worry; reluctance to share income.'),fix:T('字段旁说明“这不是征信查询”，可以保存后继续。','“This is not a credit check” at the field; save and resume.')},
+ {id:'c7',x:1080,y:600,t:T('③ 补材料','③ Documents'),now:T('手机上找工资单、拍证件很麻烦，容易放弃。','Payslips and ID on a phone are a hassle; easy to abandon.'),fix:T('材料清单加拍照上传，同步给安装商帮忙催。','Checklist with photo capture, shared with the installer.')},
+ {id:'i4',x:1090,y:40,side:'r',o:1,t:T('Portal 看不出卡在哪','Portal hides what is stuck'),now:T('现在是 alert 收件箱，要一条条看。','An alerts inbox you read one by one.'),fix:T('改成 pipeline 看板，一键提醒客户。','A pipeline board with one-tap nudges.')}];
+/* ---------- render map ---------- */
+const cv=document.getElementById('cv');
+function anchor(n,side){return side==='r'?[n.x+n.w,n.y+n.h/2]:side==='l'?[n.x,n.y+n.h/2]:side==='t'?[n.x+n.w/2,n.y]:[n.x+n.w/2,n.y+n.h]}
+function pathFor(a,b){
+ const dy=(b.y+b.h/2)-(a.y+a.h/2), dx=(b.x+b.w/2)-(a.x+a.w/2);
+ let p,q,vert=Math.abs(dy)>60;
+ if(vert){p=anchor(a,dy>0?'b':'t');q=anchor(b,dy>0?'t':'b');const m=(q[1]-p[1])/2;return [`M${p[0]},${p[1]} C${p[0]},${p[1]+m} ${q[0]},${q[1]-m} ${q[0]},${q[1]}`,(p[0]+q[0])/2,(p[1]+q[1])/2]}
+ p=anchor(a,dx>0?'r':'l');q=anchor(b,dx>0?'l':'r');const m=(q[0]-p[0])/2;return [`M${p[0]},${p[1]} C${p[0]+m},${p[1]} ${q[0]-m},${q[1]} ${q[0]},${q[1]}`,(p[0]+q[0])/2,(p[1]+q[1])/2-5]}
+function renderMap(){
+ let h='';
+ LANES.forEach(l=>h+=`<div class="lane ${l.core?'core':''}" style="top:${l.y}px;height:${l.h}px"><div class="ll">${T(l.zh,l.en)}<small>${T(l.szh,l.sen)}</small></div></div>`);
+ PH.forEach(p=>h+=`<div class="phase" style="left:${p.x}px;width:${p.w}px">${T(p.zh,p.en)}</div>`);
+ let s=`<svg class="edges" viewBox="0 0 ${W} ${H}"><defs>${Object.entries(STY).map(([k,v])=>`<marker id="ar-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="${k==='core'?4:6}" markerHeight="${k==='core'?4:6}" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="${v[0]}"/></marker>`).join('')}</defs>`;
+ E.forEach((e,i)=>{const [d,mx,my]=pathFor(N[e[0]],N[e[1]]);const st=STY[e[2]];
+  s+=`<g data-e="${i}"><path d="${d}" stroke="${st[0]}" stroke-width="${st[1]}" ${st[2]?`stroke-dasharray="${st[2]}"`:''} marker-end="url(#ar-${e[2]})"/>${e[3]?`<text x="${mx}" y="${my}" text-anchor="middle"><tspan lang="zh">${e[3]}</tspan><tspan lang="en">${e[4]}</tspan></text>`:''}</g>`});
+ s+='</svg>';h+=s;
+ Object.values(N).forEach(n=>{h+=`<div class="node ${n.core?'core':''} ${n.off?'offline':''}" data-n="${n.id}" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px">${n.who?`<span class="who">${n.who}</span>`:''}<span class="ev ${n.ev==='i'?'i':''}">${n.ev==='i'?T('推测','inferred'):T('已证实','verified')}</span><h6>${n.num?`<span class="num">${n.num}</span>`:''}${T(n.zh,n.en)}</h6><p>${T(n.dzh,n.den)}</p></div>`});
+ [['c1',T('① 交接','① Hand-off'),-36],['c5',T('② 填收入','② Income'),-36],['c7',T('③ 补材料','③ Documents'),-36]].forEach(([id,l,dy])=>{const n=N[id];h+=`<div class="drop" style="left:${n.x+n.w/2-40}px;top:${n.y+dy+ (id==='c1'?0:0)}px">${l}</div>`});
+ ROLES.forEach((r,i)=>{const l=LANES[i];h+=`<div class="role ${l.core?'core':''}" data-r="${i}"><h5>${T(l.zh,l.en)}</h5><div class="d">${T(r[0],r[1])}</div><div class="s">${T(l.szh,l.sen)}</div></div>`});
+ h+=`<svg class="simple" viewBox="0 0 ${W} ${H}"><defs><marker id="sa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0L10,5L0,10z" fill="context-stroke"/></marker></defs>`+SIMPLE.map(e=>`<path d="${e[0]}" stroke="${e[1]}" stroke-width="2.5" fill="none" ${e[4]?'stroke-dasharray="6 5"':''} marker-end="url(#sa)"/><text x="${e[2][0]}" y="${e[2][1]}" text-anchor="${e[2][2]||'start'}"><tspan lang="zh">${e[3][0]}</tspan><tspan lang="en">${e[3][1]}</tspan></text>`).join('')+'</svg>';
+ let cl=`<svg class="cl" viewBox="0 0 ${W} ${H}">`;
+ CALL.forEach((c,i)=>{const n=N[c.id];const col=c.o?'#c0661c':'#d64545';
+  const [x1,y1,x2,y2]=c.side==='r'?[n.x+n.w,n.y+n.h/2,c.x,c.y+40]:[n.x+n.w/2,n.y+n.h,n.x+n.w/2,c.y];
+  cl+=`<path d="M${x1},${y1} L${x2},${y2}" stroke="${col}" stroke-width="1.8" stroke-dasharray="4 4"/><circle cx="${x1}" cy="${y1}" r="4" fill="${col}"/>`;
+  h+=`<div class="callout ${c.o?'o':''}" style="left:${c.x}px;top:${c.y}px;--d:${.15+i*.12}s"><h6>${c.t}</h6><div class="now">${c.now}</div><div class="fix"><b>${T('可以试','Try')}</b>${c.fix}</div></div>`});
+ h+=cl+'</svg>';
+ cv.innerHTML=h;
+ cv.querySelectorAll('.node').forEach(el=>{const n=N[el.dataset.n];el.style.setProperty('--d',(.45+n.x/W*.55+(n.lane==='home'?0:.15)).toFixed(2)+'s')});
+ cv.onclick=()=>{if(stage===0)setStage(1)};
+}
+let stage=0;
+function placeRoles(){cv.querySelectorAll('.role').forEach(el=>{const l=LANES[+el.dataset.r];
+ if(stage===0){Object.assign(el.style,{left:'510px',width:'460px',top:(l.y+l.h/2-50)+'px',height:'100px'})}
+ else Object.assign(el.style,{left:'0px',width:'120px',top:(l.y)+'px',height:'70px'})})}
+const SNOTE=[
+ {zh:['先看最简单的版本：一笔贷款只有<b>四方</b>。','安装商带来客户，业主填申请，28Watt 匹配贷款并代办，贷款机构审批和放款。','点击图片，展开成完整流程。'],en:['Start simple: one loan, <b>four parties</b>.','The installer brings the customer, the homeowner applies, 28Watt matches and manages the loan, the lender approves and pays out.','Click the diagram to expand into the full flow.'],
+  say:"At its core there are four parties. The homeowner in the middle is the one who has to finish the application."},
+ null,
+ {zh:['在完整流程上标出现状问题：<b>红色</b>是三个最可能的流失点，<b>橙色</b>是次要的体验问题。','每个标注都写了现状和可以尝试的方向。接下来先讲策略，再看具体界面。'],en:['The full flow, annotated: <b>red</b> marks the three likely drop-offs, <b>orange</b> marks secondary experience issues.','Each note shows what happens today and what to try. Principles come next, then the screens.'],
+  say:"From the outside, these are the moments where I'd expect people to drop off. That's my hypothesis, but I'd validate it with funnel data first."}];
+function setStage(n){stage=n;document.body.classList.toggle('st0',n===0);cv.classList.remove('s0','s1','s2');cv.classList.add('s'+n);placeRoles();
+ document.querySelectorAll('#stepper button').forEach(b=>b.classList.toggle('on',+b.dataset.s===n));
+ document.getElementById('views').classList.toggle('hide',n!==1);
+ document.getElementById('hint').innerHTML=n===0?T('点击图片展开 →','Click the diagram to expand →'):n===1?T('切换视角 · → 下一部分','Switch views · → next part'):T('→ 下一部分','→ next part');
+ if(n===1){setView(curView||'all');return}
+ const set=n===2?new Set(['c1','c3','c5','c7','i3','i4']):null;
+ cv.querySelectorAll('.node').forEach(el=>{const on=!set||set.has(el.dataset.n);el.classList.toggle('dim',!on);el.classList.toggle('hot',false)});
+ cv.querySelectorAll('svg g[data-e]').forEach(g=>{const e=E[+g.dataset.e];g.classList.toggle('dim',!!set&&!(e[2]==='core'||(e[0]==='i3'&&e[1]==='c1')))});
+ cv.classList.remove('showdrop');
+ const v=SNOTE[n];document.getElementById('viewnote').innerHTML=`<h3>${n===0?T('① 核心角色','① Core parties'):T('③ 问题标注','③ Where it breaks')}</h3>${v.zh.map((p,i)=>`<p>${T(p,v.en[i])}</p>`).join('')}<div class="say" style="margin-bottom:0"><b>${T('可以这样说','Say it like this')}</b><q>"${v.say}"</q></div>`;
+ applyLang()}
+let curView='all';
+function setView(id){
+ curView=id;const v=VIEWS.find(x=>x.id===id);
+ document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===id));
+ const set=v.nodes?new Set(v.nodes):null;
+ cv.querySelectorAll('.node').forEach(el=>{const on=!set||set.has(el.dataset.n);el.classList.toggle('dim',!on);el.classList.toggle('hot',!!set&&on)});
+ cv.querySelectorAll('svg g[data-e]').forEach(g=>{const e=E[+g.dataset.e];let on=!set||(set.has(e[0])&&set.has(e[1]));if(id==='money')on=e[2]==='money'||(set.has(e[0])&&set.has(e[1]));g.classList.toggle('dim',!on)});
+ cv.classList.toggle('showdrop',!!v.drop);
+ document.getElementById('viewnote').innerHTML=`<h3>${T(v.zh,v.en)}</h3>${v.nzh.map((p,i)=>`<p>${T(p,v.nen[i])}</p>`).join('')}<div class="say" style="margin-bottom:0"><b>${T('可以这样说','Say it like this')}</b><q>"${v.say}"</q></div>`;
+ applyLang();
+}
+document.getElementById('views').innerHTML=VIEWS.map(v=>`<button data-v="${v.id}">${T(v.zh,v.en)}</button>`).join('');
+document.querySelectorAll('#views button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+function fit(){const vp=document.getElementById('vp');if(!vp.clientWidth)return;const s=Math.min(1,vp.clientWidth/W);cv.style.transform=`scale(${s})`;vp.style.height=(H*s)+'px'}
+window.addEventListener('resize',fit);
+
+/* ---------- funnel ---------- */
+const F=[['上传报价','Quote uploaded',100,100],['业主打开链接','Link opened',70,80,1],['填完联系方式','Contact details',62,76],['填完基本资料','The basics',50,65,1],['选了方案','Offer chosen',44,57],['补齐材料','Documents',28,43,1],['有条件批准','Conditional approval',22,32]];
+document.getElementById('funnel').innerHTML=F.map(f=>`<div class="row ${f[4]?'hot':''}"><span>${T(f[0],f[1])}</span><div class="bars"><i style="width:${f[2]}%"></i><i class="t" style="width:${f[3]}%"></i></div><span class="v">${f[2]} → <b>${f[3]}</b></span></div>`).join('');
+
+/* ---------- tabs & lang ---------- */
+let tab=0;const NT=5;
+const mapblock=document.getElementById('mapblock');
+function go(t){tab=Math.max(0,Math.min(NT-1,t));
+ document.querySelectorAll('.tabs button').forEach((b,i)=>b.classList.toggle('on',i===tab));
+ document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('on',i===tab));
+ if(tab===1){document.getElementById('p1').appendChild(mapblock);if(stage===2)setStage(1)}
+ if(tab===2){document.getElementById('slot2').appendChild(mapblock);if(stage!==2){if(stage===0)setStage(1);requestAnimationFrame(()=>setTimeout(()=>setStage(2),stage===0?900:60))}}
+ fit();window.scrollTo({top:0});try{history.replaceState(null,'','#'+tab)}catch(e){}}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>go(+b.dataset.t));
+document.querySelectorAll('[data-go]').forEach(li=>li.onclick=()=>go(+li.dataset.go));
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'){if(tab===1&&stage===0)setStage(1);else go(tab+1)}if(e.key==='ArrowLeft'){if(tab===1&&stage===1)setStage(0);else go(tab-1)}});
+document.querySelectorAll('#stepper button').forEach(b=>b.onclick=()=>setStage(+b.dataset.s));
+let L=(()=>{try{return localStorage.getItem('flowLang')}catch(e){}})()||'zh';
+function applyLang(){document.body.classList.toggle('en',L==='en');document.documentElement.lang=L;document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.l===L))}
+document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{L=b.dataset.l;try{localStorage.setItem('flowLang',L)}catch(e){}applyLang()});
+renderMap();setView('all');setStage(0);go(parseInt(location.hash.slice(1))||0);applyLang();
+</script>
+</body></html>
